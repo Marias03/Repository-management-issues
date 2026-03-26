@@ -1,0 +1,51 @@
+"""
+duplicate.py — Detects duplicate issues by comparing text similarity.
+"""
+
+from difflib import SequenceMatcher
+
+
+SIMILARITY_THRESHOLD = 0.65  # 65% similarity to consider a duplicate
+
+
+def similarity(text_a, text_b):
+    """Returns a similarity score between two strings (0.0 to 1.0)."""
+    return SequenceMatcher(None, text_a.lower(), text_b.lower()).ratio()
+
+
+def find_duplicates(new_issue, repo):
+    """
+    Compares a new issue against all open issues.
+    Returns a list of (issue, score) for similar ones.
+    """
+    new_text = new_issue.title + " " + (new_issue.body or "")
+    duplicates = []
+
+    for existing in repo.get_issues(state="open"):
+        if existing.number == new_issue.number:
+            continue
+        existing_text = existing.title + " " + (existing.body or "")
+        score = similarity(new_text, existing_text)
+        if score >= SIMILARITY_THRESHOLD:
+            duplicates.append((existing, round(score * 100)))
+
+    return sorted(duplicates, key=lambda x: x[1], reverse=True)
+
+
+def handle_duplicates(issue, repo):
+    """Main function: finds duplicates and leaves a comment on the issue."""
+    print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
+    duplicates = find_duplicates(issue, repo)
+
+    if not duplicates:
+        print(f"  [duplicate] No duplicates found.")
+        return
+
+    lines = ["⚠️ **Possible duplicates found:**\n"]
+    for dup_issue, score in duplicates[:3]:
+        lines.append(f"- #{dup_issue.number} — _{dup_issue.title}_ (similarity: {score}%)")
+    lines.append("\nPlease check if this issue is a duplicate before proceeding.")
+
+    issue.create_comment("\n".join(lines))
+    issue.add_to_labels("duplicate")
+    print(f"  [duplicate] Issue #{issue.number}: {len(duplicates)} duplicate(s) found.")

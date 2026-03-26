@@ -1,0 +1,23 @@
+{
+  "bug": [
+    "error",
+    "crash",
+    "no funciona",
+    "broken",
+    "fail",
+    "exception",
+    "bug",
+    "не работает"
+  ],
+  "feature": [
+    "feature",
+    "añadir",
+    "mejora",
+    "enhancement",
+    "request",
+    "новая функция"
+  ],
+  "docs": ["docs", "readme", "documentacion", "documentation", "typo"],
+  "question": ["question", "help", "como", "how", "ayuda"],
+  "security": ["security", "vulnerability", "exploit", "seguridad"]
+}
