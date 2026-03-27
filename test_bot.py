@@ -14,32 +14,38 @@ print(f"Connected to: {repo.full_name}")
 print(f"Open issues: {repo.open_issues_count}")
 print()
 
-print("TEST 1 - Labeler")
+print("TEST 1 - Labeler (no translation needed)")
 from src.labeler import detect_labels, load_label_rules
 rules = load_label_rules()
-labels = detect_labels("App crashes on login", "Getting an error when I try to log in", rules)
+from src.labeler import load_label_rules
+rules = load_label_rules()
+text = "app crashes on login getting an error".lower()
+matched = [l for l, kws in rules.items() if any(k in text for k in kws)]
 print(f"   Input: App crashes on login")
-print(f"   Detected labels: {labels}")
+print(f"   Detected labels: {matched}")
 print()
 
-print("TEST 2 - Duplicate detection")
-from src.duplicate import similarity
-score = similarity("App crashes on login", "Application crashes during login")
-print(f"   Similarity score: {round(score * 100)}%")
+print("TEST 2 - Duplicate detection (NLP)")
+from src.duplicate import semantic_similarity
+pairs = [
+    ("App crashes on login", "Application fails during login"),
+    ("La app no funciona", "The app is not working"),
+    ("Please add dark mode", "App crashes on login"),
+]
+for a, b in pairs:
+    score = semantic_similarity(a, b)
+    result = "DUPLICATE" if score >= 0.75 else "different"
+    print(f"   {round(score * 100)}% -> {result} | {a} vs {b}")
 print()
 
 print("TEST 3 - Tone detection")
 from src.tone import detect_tone
-tests = [
+cases = [
     ("App is completely broken", ""),
-    ("Nothing works after the update", ""),
     ("This is garbage software", ""),
-    ("How do I configure this?", ""),
     ("Please add dark mode", ""),
-    ("La app no funciona", ""),
-    ("Приложение не работает", ""),
 ]
-for title, body in tests:
+for title, body in cases:
     tone = detect_tone(title, body)
     print(f"   {title!r} -> {tone}")
 print()

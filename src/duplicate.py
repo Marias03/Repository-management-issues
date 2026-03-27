@@ -1,22 +1,40 @@
 """
-duplicate.py — Detects duplicate issues by comparing text similarity.
+duplicate.py — Detects duplicate issues using NLP semantic similarity.
+Understands meaning, not just exact words.
 """
 
-from difflib import SequenceMatcher
+from sentence_transformers import SentenceTransformer, util
+from deep_translator import GoogleTranslator
+
+SIMILARITY_THRESHOLD = 0.75
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-SIMILARITY_THRESHOLD = 0.65  # 65% similarity to consider a duplicate
+def translate_to_english(text):
+    """Translates any text to English."""
+    try:
+        if not text or len(text.strip()) == 0:
+            return text
+        translated = GoogleTranslator(source="auto", target="en").translate(text)
+        return translated or text
+    except Exception as e:
+        print(f"  [duplicate] Translation failed: {e}")
+        return text
 
 
-def similarity(text_a, text_b):
-    """Returns a similarity score between two strings (0.0 to 1.0)."""
-    return SequenceMatcher(None, text_a.lower(), text_b.lower()).ratio()
+def semantic_similarity(text_a, text_b):
+    """Translates and returns semantic similarity score (0.0 to 1.0)."""
+    text_a = translate_to_english(text_a)
+    text_b = translate_to_english(text_b)
+    embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
+    score = util.cos_sim(embeddings[0], embeddings[1]).item()
+    return score
 
 
 def find_duplicates(new_issue, repo):
     """
-    Compares a new issue against all open issues.
-    Returns a list of (issue, score) for similar ones.
+    Compares a new issue against all open issues using NLP.
+    Returns a list of (issue, score) for semantically similar ones.
     """
     new_text = new_issue.title + " " + (new_issue.body or "")
     duplicates = []
@@ -25,7 +43,7 @@ def find_duplicates(new_issue, repo):
         if existing.number == new_issue.number:
             continue
         existing_text = existing.title + " " + (existing.body or "")
-        score = similarity(new_text, existing_text)
+        score = semantic_similarity(new_text, existing_text)
         if score >= SIMILARITY_THRESHOLD:
             duplicates.append((existing, round(score * 100)))
 
@@ -33,7 +51,7 @@ def find_duplicates(new_issue, repo):
 
 
 def handle_duplicates(issue, repo):
-    """Main function: finds duplicates and leaves a comment on the issue."""
+    """Main function: finds semantic duplicates and leaves a comment."""
     print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
     duplicates = find_duplicates(issue, repo)
 
@@ -41,9 +59,9 @@ def handle_duplicates(issue, repo):
         print(f"  [duplicate] No duplicates found.")
         return
 
-    lines = ["⚠️ **Possible duplicates found:**\n"]
+    lines = ["**Possible duplicates found:**\n"]
     for dup_issue, score in duplicates[:3]:
-        lines.append(f"- #{dup_issue.number} — _{dup_issue.title}_ (similarity: {score}%)")
+        lines.append(f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)")
     lines.append("\nPlease check if this issue is a duplicate before proceeding.")
 
     issue.create_comment("\n".join(lines))

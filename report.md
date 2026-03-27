@@ -1,16 +1,16 @@
 # Issues Report — Marias03/Repository-management-issues
-Generated: 2026-03-27 07:45 UTC
+Generated: 2026-03-27 08:05 UTC
 
 ## Summary
-- Open issues: 5
+- Open issues: 6
 - Closed issues: 0
 - No response for 7+ days: 0
 - Duplicates: 1
-- Urgent: 3
+- Urgent: 4
 
 ## Labels breakdown
-- bug: 5
-- urgent: 3
+- bug: 6
+- urgent: 4
 - duplicate: 1
 - needs-attention: 1
 
