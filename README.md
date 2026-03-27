@@ -1,80 +1,129 @@
-# Repository Management Issues Bot
+# GitHub Issues Bot
 
-A Python-based GitHub issues bot for basic repository issue management.
+A Python bot that automatically manages issues in a GitHub repository.
+Runs in the cloud via GitHub Actions — no server required.
 
-This project automates part of the issue workflow by responding to issues and applying labels based on simple rules.
+## What it does
 
-## Features
+| Feature | Description |
+|---|---|
+| Auto labeling | Detects the issue type and adds labels automatically |
+| Duplicate detection | Uses NLP to find semantically similar issues |
+| Tone detection | Identifies urgent, aggressive, or confused issues |
+| Auto comments | Leaves a comment on every new issue |
+| Stale notifications | Notifies about issues with no response for 7+ days |
+| Auto closing | Closes issues when a commit contains `closes #N` |
+| Daily report | Generates a `report.md` with repository statistics |
 
-* Automatic issue labeling
-* Automatic issue comments
-* GitHub Actions integration
-* Modular Python structure for issue management logic
+## Supported languages
 
-## Current behavior
+The bot understands issues written in any language.
+It automatically translates to English before analyzing.
 
-At the moment, the bot can:
+Tested with: English, Spanish, Russian.
 
-* detect issue conditions based on predefined logic
-* add labels such as `bug` and `urgent`
-* post an automatic comment on an issue
+## How it works
+```
+Someone opens an issue on GitHub
+           ↓
+GitHub notifies GitHub Actions
+           ↓
+main.py reads the event type
+           ↓
+calls the right module
+           ↓
+labeler / duplicate / tone / notifier / closer act
+```
 
 ## Project structure
-
-```text
-.
+```
+github-issues-bot/
 ├── .github/
-├── config/
+│   └── workflows/
+│       └── bot.yml          # GitHub Actions configuration
 ├── src/
-│   ├── closer.py
-│   ├── duplicate.py
-│   ├── labeler.py
-│   ├── main.py
-│   ├── notifier.py
-│   ├── reporter.py
-│   └── tone.py
+│   ├── main.py              # Entry point, routes events
+│   ├── labeler.py           # Automatic label detection
+│   ├── duplicate.py         # NLP semantic duplicate detection
+│   ├── tone.py              # Tone detection and auto comments
+│   ├── notifier.py          # Stale issue notifications
+│   ├── closer.py            # Auto close by commit message
+│   └── reporter.py          # Daily statistics report
+├── config/
+│   └── labels.json          # Label rules and keywords
 ├── requirements.txt
-└── report.md
+└── test_bot.py              # Local test script
 ```
 
 ## Tech stack
 
-* Python
-* GitHub Actions
-
-## How it works
-
-1. An issue is created in the repository
-2. GitHub Actions runs the bot
-3. The bot analyzes the issue
-4. The bot applies labels and posts a comment
+| Technology | Purpose |
+|---|---|
+| Python 3.10+ | Main language |
+| PyGithub | GitHub API client |
+| sentence-transformers | NLP semantic similarity |
+| deep-translator | Multilanguage support |
+| GitHub Actions | Cloud execution |
 
 ## Installation
 
-Clone the repository:
-
+### 1. Clone the repository
 ```bash
 git clone https://github.com/Marias03/Repository-management-issues.git
 cd Repository-management-issues
 ```
 
-Create a virtual environment:
-
+### 2. Create a virtual environment
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-## Purpose
+### 3. Configure environment variables
 
-This project was created to practice repository automation and issue handling with Python and GitHub workflows.
+Create a `.env` file:
+```
+GITHUB_TOKEN=your_token_here
+REPO_NAME=your_username/your_repo
+```
 
-## Notes
+### 4. Run tests locally
+```bash
+python test_bot.py
+```
 
-This repository is still in development, and the bot behavior may continue evolving as new features are added.
+## GitHub Actions setup
+
+The bot runs automatically in the cloud. No setup needed beyond pushing the code.
+
+It triggers on:
+- New or edited issues
+- Push to main branch
+- Every day at 9:00 UTC (for stale issue checks)
+
+## Label reference
+
+| Label | Triggered by |
+|---|---|
+| `bug` | crash, error, broken, not working... |
+| `feature` | add, improvement, request... |
+| `docs` | documentation, readme, guide... |
+| `question` | how to, confused, help... |
+| `security` | vulnerability, exploit, hack... |
+| `urgent` | production down, completely broken... |
+| `duplicate` | semantically similar to existing issue |
+| `needs-attention` | no response for 7+ days |
+
+## Example
+
+Someone opens an issue:
+> *"La app no funciona después de la actualización"*
+
+The bot automatically:
+1. Translates to English
+2. Adds labels `bug` and `urgent`
+3. Checks for duplicate issues
+4. Leaves a comment: *"This issue has been marked as urgent and will be prioritized."*
+
+All in under 1 min.
