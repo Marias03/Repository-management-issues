@@ -1,6 +1,7 @@
 name: GitHub Issues Bot
 
 on:
+  workflow_dispatch:
   issues:
     types: [opened, edited]
   push:
