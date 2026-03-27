@@ -31,10 +31,13 @@ print()
 print("TEST 3 - Tone detection")
 from src.tone import detect_tone
 tests = [
-    ("URGENT: production is down", "nothing works"),
-    ("This is garbage software", "worst app ever"),
-    ("How do I configure this?", "I don't understand the docs"),
-    ("Add dark mode", "it would be nice to have"),
+    ("App is completely broken", ""),
+    ("Nothing works after the update", ""),
+    ("This is garbage software", ""),
+    ("How do I configure this?", ""),
+    ("Please add dark mode", ""),
+    ("La app no funciona", ""),
+    ("Приложение не работает", ""),
 ]
 for title, body in tests:
     tone = detect_tone(title, body)
