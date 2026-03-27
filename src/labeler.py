@@ -1,8 +1,22 @@
 """
 labeler.py — Automatically labels issues based on keywords.
+Supports any language by translating to English first.
 """
 
 import json
+from deep_translator import GoogleTranslator
+
+
+def translate_to_english(text):
+    """Translates any text to English. Returns original if translation fails."""
+    try:
+        if not text or len(text.strip()) == 0:
+            return text
+        translated = GoogleTranslator(source="auto", target="en").translate(text)
+        return translated or text
+    except Exception as e:
+        print(f"  [labeler] Translation failed, using original text: {e}")
+        return text
 
 
 def load_label_rules(config_path="config/labels.json"):
@@ -11,8 +25,14 @@ def load_label_rules(config_path="config/labels.json"):
 
 
 def detect_labels(title, body, rules):
-    """Returns a list of labels that match the issue text."""
-    text = (title + " " + (body or "")).lower()
+    """Translates title and body to English, then matches keywords."""
+    translated_title = translate_to_english(title)
+    translated_body = translate_to_english(body or "")
+
+    print(f"  [labeler] Original: '{title}'")
+    print(f"  [labeler] Translated: '{translated_title}'")
+
+    text = (translated_title + " " + translated_body).lower()
     matched = []
     for label, keywords in rules.items():
         if any(kw.lower() in text for kw in keywords):
@@ -31,6 +51,8 @@ def ensure_labels_exist(repo, rules):
         "security": "e4e669",
         "duplicate": "cfd3d7",
         "needs-attention": "e99695",
+        "urgent": "b60205",
+        "needs-clarification": "fbca04",
     }
     for label_name in list(rules.keys()) + ["duplicate", "needs-attention"]:
         if label_name not in existing:
@@ -55,6 +77,6 @@ def apply_labels(issue, repo, config_path="config/labels.json"):
 
     if new_labels:
         issue.add_to_labels(*new_labels)
-        print(f"  [labeler] Issue #{issue.number}: labels added → {new_labels}")
+        print(f"  [labeler] Issue #{issue.number}: labels added -> {new_labels}")
     else:
         print(f"  [labeler] Issue #{issue.number}: labels already applied.")

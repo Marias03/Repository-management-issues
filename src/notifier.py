@@ -5,7 +5,7 @@ notifier.py — Notifies about issues that have had no response for too long.
 from datetime import datetime, timezone
 
 
-STALE_DAYS = 7        # Days without response before notifying
+STALE_DAYS = 7
 NOTIFY_LABEL = "needs-attention"
 
 
@@ -31,7 +31,6 @@ def check_stale_issues(repo):
     notified_count = 0
 
     for issue in repo.get_issues(state="open"):
-        # Skip pull requests (they also appear in the issues API)
         if issue.pull_request:
             continue
 
@@ -44,7 +43,7 @@ def check_stale_issues(repo):
                 continue
 
             message = (
-                f"⏰ This issue has been waiting for a response for **{age} days** "
+                f"This issue has been waiting for a response for **{age} days** "
                 f"with no comments.\n\n"
                 f"Please take a look or close it if it is no longer relevant."
             )
