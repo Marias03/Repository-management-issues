@@ -10,7 +10,8 @@ from github import Github
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.labeler import apply_labels
-from src.duplicate import handle_duplicates
+from src.duplicates.LLMDuplicates import LLMDuplicateDetector
+from src.duplicates.nlpDuplicates import NLPDuplicateDetector
 from src.notifier import check_stale_issues
 from src.closer import close_issues_from_push
 from src.tone import handle_tone
@@ -64,7 +65,16 @@ def main():
 
             if action == "opened":
                 print("[bot] -> Checking for duplicates...")
-                handle_duplicates(issue, repo)
+
+                # Выбираем метод через переменную окружения
+                method = os.environ.get("DUPLICATE_METHOD", "nlp")  # 'nlp' или 'llm'
+
+                if method.lower() == "llm":
+                    detector = LLMDuplicateDetector()
+                else:
+                    detector = NLPDuplicateDetector()
+
+                detector.handle_duplicates(issue, repo)
 
     elif event_name == "push":
         commits = event_data.get("commits", [])
