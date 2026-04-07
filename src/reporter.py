@@ -3,12 +3,7 @@ reporter.py — Generates a daily markdown report of the repository issues.
 """
 
 from datetime import datetime, timezone
-
-
-def days_since(dt):
-    now = datetime.now(timezone.utc)
-    delta = now - dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else now - dt
-    return delta.days
+from src.utils import days_since
 
 
 def generate_report(repo):

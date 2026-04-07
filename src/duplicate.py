@@ -4,28 +4,16 @@ Understands meaning, not just exact words.
 """
 
 from sentence_transformers import SentenceTransformer, util
-from deep_translator import GoogleTranslator
+from src.utils import translate_to_english
 
 SIMILARITY_THRESHOLD = 0.75
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def translate_to_english(text):
-    """Translates any text to English."""
-    try:
-        if not text or len(text.strip()) == 0:
-            return text
-        translated = GoogleTranslator(source="auto", target="en").translate(text)
-        return translated or text
-    except Exception as e:
-        print(f"  [duplicate] Translation failed: {e}")
-        return text
-
-
 def semantic_similarity(text_a, text_b):
     """Translates and returns semantic similarity score (0.0 to 1.0)."""
-    text_a = translate_to_english(text_a)
-    text_b = translate_to_english(text_b)
+    text_a = translate_to_english(text_a, module="duplicate")
+    text_b = translate_to_english(text_b, module="duplicate")
     embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     return score

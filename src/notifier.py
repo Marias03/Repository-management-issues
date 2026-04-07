@@ -2,18 +2,11 @@
 notifier.py — Notifies about issues that have had no response for too long.
 """
 
-from datetime import datetime, timezone
+from src.utils import days_since
 
 
 STALE_DAYS = 7
 NOTIFY_LABEL = "needs-attention"
-
-
-def days_since(dt):
-    """Returns the number of days since the given datetime."""
-    now = datetime.now(timezone.utc)
-    delta = now - dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else now - dt
-    return delta.days
 
 
 def already_notified(issue):

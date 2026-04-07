@@ -4,30 +4,20 @@ Supports any language by translating to English first.
 """
 
 import json
-from deep_translator import GoogleTranslator
+from src.utils import translate_to_english, get_config_path
 
 
-def translate_to_english(text):
-    """Translates any text to English. Returns original if translation fails."""
-    try:
-        if not text or len(text.strip()) == 0:
-            return text
-        translated = GoogleTranslator(source="auto", target="en").translate(text)
-        return translated or text
-    except Exception as e:
-        print(f"  [labeler] Translation failed, using original text: {e}")
-        return text
-
-
-def load_label_rules(config_path="config/labels.json"):
+def load_label_rules(config_path=None):
+    if config_path is None:
+        config_path = get_config_path("config/labels.json")
     with open(config_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def detect_labels(title, body, rules):
     """Translates title and body to English, then matches keywords."""
-    translated_title = translate_to_english(title)
-    translated_body = translate_to_english(body or "")
+    translated_title = translate_to_english(title, module="labeler")
+    translated_body = translate_to_english(body or "", module="labeler")
 
     print(f"  [labeler] Original: '{title}'")
     print(f"  [labeler] Translated: '{translated_title}'")
@@ -61,7 +51,7 @@ def ensure_labels_exist(repo, rules):
             print(f"  [labeler] Label created: {label_name}")
 
 
-def apply_labels(issue, repo, config_path="config/labels.json"):
+def apply_labels(issue, repo, config_path=None):
     """Main function: detects and applies labels to the issue."""
     rules = load_label_rules(config_path)
     ensure_labels_exist(repo, rules)

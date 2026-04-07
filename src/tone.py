@@ -2,19 +2,19 @@
 tone.py — Detects the tone of an issue and leaves an automatic comment.
 """
 
-from deep_translator import GoogleTranslator
+from src.utils import translate_to_english
 
 TONES = {
     "urgent": [
         "production down", "blocking", "p0", "hotfix",
-    "not working", "broken", "stopped working", "cant login",
-    "can't login", "cannot login", "critical", "emergency",
-    "everything is down", "nothing works", "completely broken",
-    "affecting all users", "major issue", "severe", "outage",
-    "system down", "service down", "site down", "app down",
-    "production is down", "is down", "all users",
-    "does not work", "doesn't work", "no longer works",
-    "app not working", "not functioning"
+        "not working", "broken", "stopped working", "cant login",
+        "can't login", "cannot login", "critical", "emergency",
+        "everything is down", "nothing works", "completely broken",
+        "affecting all users", "major issue", "severe", "outage",
+        "system down", "service down", "site down", "app down",
+        "production is down", "is down", "all users",
+        "does not work", "doesn't work", "no longer works",
+        "app not working", "not functioning"
     ],
     "aggressive": [
         "terrible", "awful", "horrible", "unacceptable", "ridiculous",
@@ -35,28 +35,34 @@ COMMENTS = {
     "normal": "Thank you for reporting this. Our team will review it and respond as soon as possible.",
 }
 
+# Marker used to identify previously posted tone comments
+_TONE_MARKER = "<!-- bot:tone-comment -->"
 
-def translate_to_english(text):
-    """Translates any text to English."""
-    try:
-        if not text or len(text.strip()) == 0:
-            return text
-        translated = GoogleTranslator(source="auto", target="en").translate(text)
-        return translated or text
-    except Exception as e:
-        print(f"  [tone] Translation failed: {e}")
-        return text
+
+def translate_to_english_tone(text):
+    return translate_to_english(text, module="tone")
 
 
 def detect_tone(title, body):
     """Translates and analyzes the title and body, returns the tone."""
-    translated_title = translate_to_english(title)
-    translated_body = translate_to_english(body or "")
+    translated_title = translate_to_english_tone(title)
+    translated_body = translate_to_english_tone(body or "")
     text = (translated_title + " " + translated_body).lower()
     for tone, keywords in TONES.items():
         if any(kw.lower() in text for kw in keywords):
             return tone
     return "normal"
+
+
+def already_commented_tone(issue):
+    """
+    Returns True if the bot has already posted a tone comment on this issue.
+    Prevents duplicate comments on repeated 'edited' events.
+    """
+    for comment in issue.get_comments():
+        if _TONE_MARKER in comment.body:
+            return True
+    return False
 
 
 def handle_tone(issue, repo):
@@ -85,6 +91,10 @@ def handle_tone(issue, repo):
         if label_name not in current:
             issue.add_to_labels(label_name)
 
-    comment = COMMENTS[tone]
-    issue.create_comment(comment)
+    if already_commented_tone(issue):
+        print(f"  [tone] Issue #{issue.number}: tone comment already posted, skipping.")
+        return
+
+    comment_body = f"{_TONE_MARKER}\n{COMMENTS[tone]}"
+    issue.create_comment(comment_body)
     print(f"  [tone] Issue #{issue.number}: comment left for tone '{tone}'.")
