@@ -24,7 +24,7 @@ class NLPDuplicateDetector(DuplicateDetector):
 
     def semantic_similarity(self,text_a, text_b):
         """Translates and returns semantic similarity score (0.0 to 1.0)."""
-        text_a = self.translate_to_englis(text_a)
+        text_a = self.translate_to_english(text_a)
         text_b = self.translate_to_english(text_b)
         embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
         score = util.cos_sim(embeddings[0], embeddings[1]).item()
