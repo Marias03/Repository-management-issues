@@ -1,4 +1,6 @@
-
+"""
+main.py — Entry point. Reads the GitHub event and calls the right module.
+"""
 
 import os
 import sys
@@ -10,7 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils import setup_logging
 from src.labeler import apply_labels
-from src.duplicate import handle_duplicates
+from src.duplicates.LLMDuplicates import LLMDuplicateDetector
+from src.duplicates.nlpDuplicates import NLPDuplicateDetector
 from src.notifier import check_stale_issues
 from src.closer import close_issues_from_push
 from src.tone import handle_tone
@@ -18,8 +21,6 @@ from src.reporter import generate_report
 
 logger = logging.getLogger(__name__)
 
- 
- 
 def get_env(key):
     value = os.environ.get(key)
     if not value:
@@ -41,7 +42,7 @@ def main():
 
     logger.info("Event: %s | Repository: %s", event_name, repo_name)
 
-    
+    # --- Read event payload ---
     event_data = {}
     if event_path and os.path.exists(event_path):
         with open(event_path, "r", encoding="utf-8") as f:
@@ -67,7 +68,15 @@ def main():
 
             if action == "opened":
                 logger.info("Checking for duplicates...")
-                handle_duplicates(issue, repo)
+                # Выбираем метод через переменную окружения
+                method = os.environ.get("DUPLICATE_METHOD", "nlp")  # 'nlp' или 'llm'
+
+                if method.lower() == "llm":
+                    detector = LLMDuplicateDetector()
+                else:
+                    detector = NLPDuplicateDetector()
+
+                detector.handle_duplicates(issue, repo)
 
     elif event_name == "push":
         commits = event_data.get("commits", [])
