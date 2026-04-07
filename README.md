@@ -1,129 +1,94 @@
-# GitHub Issues Bot
+# Repository management issues
 
-A Python bot that automatically manages issues in a GitHub repository.
-Runs in the cloud via GitHub Actions — no server required.
+A Python bot that automates issue management in GitHub repositories using the GitHub Actions CI/CD platform.
 
-## What it does
+## Overview
 
-| Feature | Description |
-|---|---|
-| Auto labeling | Detects the issue type and adds labels automatically |
-| Duplicate detection | Uses NLP to find semantically similar issues |
-| Tone detection | Identifies urgent, aggressive, or confused issues |
-| Auto comments | Leaves a comment on every new issue |
-| Stale notifications | Notifies about issues with no response for 7+ days |
-| Auto closing | Closes issues when a commit contains `closes #N` |
-| Daily report | Generates a `report.md` with repository statistics |
+The bot listens to repository events and reacts automatically — no manual intervention required. It runs entirely in the cloud through GitHub Actions, triggered by issue activity, commits, or a daily schedule.
 
-## Supported languages
+## Features
 
-The bot understands issues written in any language.
-It automatically translates to English before analyzing.
+**Automatic labeling**
+When a new issue is opened, the bot analyzes the title and description to assign relevant labels such as `bug`, `feature`, `docs`, `question`, or `security`. Text is automatically translated to English before analysis, so issues written in any language are supported.
 
-Tested with: English, Spanish, Russian.
+**Duplicate detection**
+Uses semantic NLP similarity (sentence-transformers) to compare new issues against existing ones. Unlike simple keyword matching, this approach understands meaning — so "app crashes on login" and "cannot access my account" can be identified as related. Issues above 75% similarity threshold receive a `duplicate` label and a comment linking to the original.
 
-## How it works
-```
-Someone opens an issue on GitHub
-           ↓
-GitHub notifies GitHub Actions
-           ↓
-main.py reads the event type
-           ↓
-calls the right module
-           ↓
-labeler / duplicate / tone / notifier / closer act
-```
+**Tone detection**
+Classifies the tone of each issue as `urgent`, `aggressive`, `confused`, or `normal`. Each tone triggers a different automatic comment. Urgent issues also receive the `urgent` label for prioritization.
 
-## Project structure
-```
-github-issues-bot/
-├── .github/
-│   └── workflows/
-│       └── bot.yml          # GitHub Actions configuration
-├── src/
-│   ├── main.py              # Entry point, routes events
-│   ├── labeler.py           # Automatic label detection
-│   ├── duplicate.py         # NLP semantic duplicate detection
-│   ├── tone.py              # Tone detection and auto comments
-│   ├── notifier.py          # Stale issue notifications
-│   ├── closer.py            # Auto close by commit message
-│   └── reporter.py          # Daily statistics report
-├── config/
-│   └── labels.json          # Label rules and keywords
-├── requirements.txt
-└── test_bot.py              # Local test script
-```
+**Stale notifications**
+A daily scheduled job checks all open issues. Any issue with no comments after 7 days receives a reminder comment and the `needs-attention` label.
+
+**Auto closing**
+When a commit message contains `closes #N`, `fixes #N`, or `resolves #N`, the bot automatically closes the referenced issue and leaves a comment with a link to the commit.
+
+**Daily report**
+Every day at 09:00 UTC, the bot generates a `report.md` file in the repository with a summary of open/closed issues, label distribution, oldest issues, and issues with no response.
 
 ## Tech stack
 
-| Technology | Purpose |
-|---|---|
-| Python 3.10+ | Main language |
-| PyGithub | GitHub API client |
-| sentence-transformers | NLP semantic similarity |
-| deep-translator | Multilanguage support |
-| GitHub Actions | Cloud execution |
+- Python 3.10+
+- [PyGithub](https://github.com/PyGithub/PyGithub) — GitHub API client
+- [sentence-transformers](https://www.sbert.net/) — semantic NLP for duplicate detection
+- [deep-translator](https://github.com/nidhaloff/deep-translator) — multilanguage support
+- GitHub Actions — cloud execution and scheduling
 
-## Installation
+## Project structure
+```
+├── .github/
+│   └── workflows/
+│       └── bot.yml        # GitHub Actions workflow
+├── config/
+│   └── labels.json        # Keyword rules for label detection
+├── src/
+│   ├── main.py            # Entry point — routes events to modules
+│   ├── labeler.py         # Label detection with translation
+│   ├── duplicate.py       # NLP-based duplicate detection
+│   ├── tone.py            # Tone classification and auto comments
+│   ├── notifier.py        # Stale issue notifications
+│   ├── closer.py          # Auto close from commit messages
+│   └── reporter.py        # Daily statistics report
+├── test_bot.py            # Local test script
+└── requirements.txt
+```
 
-### 1. Clone the repository
+## Setup
+
+### 1. Clone and install
 ```bash
 git clone https://github.com/Marias03/Repository-management-issues.git
 cd Repository-management-issues
-```
-
-### 2. Create a virtual environment
-```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
+### 2. Environment variables
 
-Create a `.env` file:
+Create a `.env` file in the project root:
 ```
-GITHUB_TOKEN=your_token_here
-REPO_NAME=your_username/your_repo
+GITHUB_TOKEN=your_personal_access_token
+REPO_NAME=your_username/your_repository
 ```
 
-### 4. Run tests locally
+The token needs `repo` and `workflow` scopes.
+
+### 3. Run tests locally
 ```bash
 python test_bot.py
 ```
 
-## GitHub Actions setup
+## GitHub Actions
 
-The bot runs automatically in the cloud. No setup needed beyond pushing the code.
+The workflow triggers on three event types:
 
-It triggers on:
-- New or edited issues
-- Push to main branch
-- Every day at 9:00 UTC (for stale issue checks)
+- `issues: opened / edited` — runs labeling, tone detection, and duplicate check
+- `push: main` — scans commit messages for `closes #N` patterns
+- `schedule: 0 9 * * *` — runs stale check and generates the daily report
 
-## Label reference
+No additional secrets are required beyond the default `GITHUB_TOKEN` provided by GitHub Actions.
 
-| Label | Triggered by |
-|---|---|
-| `bug` | crash, error, broken, not working... |
-| `feature` | add, improvement, request... |
-| `docs` | documentation, readme, guide... |
-| `question` | how to, confused, help... |
-| `security` | vulnerability, exploit, hack... |
-| `urgent` | production down, completely broken... |
-| `duplicate` | semantically similar to existing issue |
-| `needs-attention` | no response for 7+ days |
+## Supported languages
 
-## Example
-
-Someone opens an issue:
-> *"La app no funciona después de la actualización"*
-
-The bot automatically:
-1. Translates to English
-2. Adds labels `bug` and `urgent`
-3. Checks for duplicate issues
-4. Leaves a comment: *"This issue has been marked as urgent and will be prioritized."*
-
-All in under 1 min.
+The bot uses automatic translation before text analysis, so issues can be written in any language. Tested with English, Spanish, and Russian.

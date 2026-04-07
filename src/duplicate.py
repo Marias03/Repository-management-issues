@@ -1,35 +1,35 @@
+"""
+duplicate.py — Detects duplicate issues using NLP semantic similarity.
+Understands meaning, not just exact words.
+"""
 
-
+import logging
 from sentence_transformers import SentenceTransformer, util
-from deep_translator import GoogleTranslator
+from src.utils import translate_to_english, load_config
 
-SIMILARITY_THRESHOLD = 0.75
-model = SentenceTransformer("all-MiniLM-L6-v2")
+logger = logging.getLogger(__name__)
 
+_cfg = load_config()["duplicate"]
 
-def translate_to_english(text):
-   
-    try:
-        if not text or len(text.strip()) == 0:
-            return text
-        translated = GoogleTranslator(source="auto", target="en").translate(text)
-        return translated or text
-    except Exception as e:
-        print(f"  [duplicate] Translation failed: {e}")
-        return text
+SIMILARITY_THRESHOLD = _cfg["similarity_threshold"]
+_model = SentenceTransformer(_cfg["model"])
+_MAX_RESULTS = _cfg["max_results"]
 
 
 def semantic_similarity(text_a, text_b):
-  
+    """Translates and returns semantic similarity score (0.0 to 1.0)."""
     text_a = translate_to_english(text_a)
     text_b = translate_to_english(text_b)
-    embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
+    embeddings = _model.encode([text_a, text_b], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     return score
 
 
 def find_duplicates(new_issue, repo):
-
+    """
+    Compares a new issue against all open issues using NLP.
+    Returns a list of (issue, score) for semantically similar ones.
+    """
     new_text = new_issue.title + " " + (new_issue.body or "")
     duplicates = []
 
@@ -45,19 +45,19 @@ def find_duplicates(new_issue, repo):
 
 
 def handle_duplicates(issue, repo):
-
-    print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
+    """Main function: finds semantic duplicates and leaves a comment."""
+    logger.debug("Checking issue #%s for duplicates...", issue.number)
     duplicates = find_duplicates(issue, repo)
 
     if not duplicates:
-        print(f"  [duplicate] No duplicates found.")
+        logger.debug("Issue #%s: no duplicates found.", issue.number)
         return
 
     lines = ["**Possible duplicates found:**\n"]
-    for dup_issue, score in duplicates[:3]:
+    for dup_issue, score in duplicates[:_MAX_RESULTS]:
         lines.append(f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)")
     lines.append("\nPlease check if this issue is a duplicate before proceeding.")
 
     issue.create_comment("\n".join(lines))
     issue.add_to_labels("duplicate")
-    print(f"  [duplicate] Issue #{issue.number}: {len(duplicates)} duplicate(s) found.")
+    logger.info("Issue #%s: %d duplicate(s) found.", issue.number, len(duplicates))

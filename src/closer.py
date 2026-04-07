@@ -1,7 +1,9 @@
 
 
 import re
+import logging
 
+logger = logging.getLogger(__name__)
 
 CLOSE_PATTERNS = re.compile(
     r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)",
@@ -16,8 +18,16 @@ def extract_issue_numbers(commit_message):
 
 
 def close_issues_from_push(repo, commits):
+<<<<<<< HEAD
  
     print("  [closer] Checking commits for 'closes #N'...")
+=======
+    """
+    Processes a list of commits from a push event.
+    Closes any referenced issues and leaves a comment with the commit link.
+    """
+    logger.info("Scanning %d commit(s) for closing keywords...", len(commits))
+>>>>>>> 794f30a36f0f695a9c01dfd7dc25457a90acad18
     closed_count = 0
 
     for commit_data in commits:
@@ -30,7 +40,7 @@ def close_issues_from_push(repo, commits):
                 issue = repo.get_issue(number)
 
                 if issue.state == "closed":
-                    print(f"    Issue #{number}: already closed, skipping.")
+                    logger.debug("Issue #%s: already closed, skipping.", number)
                     continue
 
                 comment = (
@@ -40,10 +50,10 @@ def close_issues_from_push(repo, commits):
                 )
                 issue.create_comment(comment)
                 issue.edit(state="closed")
-                print(f"    Issue #{number}: closed by commit {sha}.")
+                logger.info("Issue #%s: closed by commit %s.", number, sha)
                 closed_count += 1
 
             except Exception as e:
-                print(f"    Error closing issue #{number}: {e}")
+                logger.error("Failed to close issue #%s: %s", number, e)
 
-    print(f"  [closer] Done. Issues closed: {closed_count}.")
+    logger.info("Closer done. Issues closed: %d.", closed_count)

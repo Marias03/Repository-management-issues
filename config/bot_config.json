@@ -1,0 +1,55 @@
+{
+  "duplicate": {
+    "similarity_threshold": 0.75,
+    "model": "all-MiniLM-L6-v2",
+    "max_results": 3
+  },
+  "notifier": {
+    "stale_days": 7,
+    "notify_label": "needs-attention"
+  },
+  "labeler": {
+    "label_colors": {
+      "bug": "d73a4a",
+      "feature": "a2eeef",
+      "docs": "0075ca",
+      "question": "d876e3",
+      "security": "e4e669",
+      "duplicate": "cfd3d7",
+      "needs-attention": "e99695",
+      "urgent": "b60205",
+      "needs-clarification": "fbca04"
+    }
+  },
+  "tone": {
+    "tones": {
+      "urgent": [
+        "production down", "blocking", "p0", "hotfix",
+        "not working", "broken", "stopped working", "cant login",
+        "can't login", "cannot login", "critical", "emergency",
+        "everything is down", "nothing works", "completely broken",
+        "affecting all users", "major issue", "severe", "outage",
+        "system down", "service down", "site down", "app down",
+        "production is down", "is down", "all users",
+        "does not work", "doesn't work", "no longer works",
+        "app not working", "not functioning"
+      ],
+      "aggressive": [
+        "terrible", "awful", "horrible", "unacceptable", "ridiculous",
+        "useless", "garbage", "stupid", "worst", "hate", "angry",
+        "furious", "disgusting", "incompetent"
+      ],
+      "confused": [
+        "not sure", "confused", "don't understand", "unclear",
+        "how do i", "how to", "what is", "why is", "i don't know",
+        "no idea", "lost", "stuck"
+      ]
+    },
+    "comments": {
+      "urgent": "This issue has been marked as **urgent** and will be prioritized.",
+      "aggressive": "Thank you for your feedback. We have flagged this issue for immediate attention.",
+      "confused": "Thank you for reaching out. We will review your question and get back to you.",
+      "normal": "Thank you for reporting this. Our team will review it and respond as soon as possible."
+    }
+  }
+}

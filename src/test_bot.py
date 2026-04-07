@@ -23,13 +23,14 @@ print(f"   Detected labels: {labels}")
 print()
 
 print("TEST 2 - Duplicate detection")
-from src.duplicate import similarity
-score = similarity("App crashes on login", "Application crashes during login")
+from src.duplicate import semantic_similarity  # fix: was incorrectly named 'similarity'
+score = semantic_similarity("App crashes on login", "Application crashes during login")
 print(f"   Similarity score: {round(score * 100)}%")
 print()
 
 print("TEST 3 - Notifier (stale issues)")
-from src.notifier import days_since, STALE_DAYS
+from src.notifier import STALE_DAYS
+from src.utils import days_since
 issues = list(repo.get_issues(state="open"))
 if issues:
     for issue in issues[:3]:

@@ -1,52 +1,23 @@
+"""
+tone.py — Detects the tone of an issue and leaves an automatic comment.
+"""
 
-from deep_translator import GoogleTranslator
+import logging
+from src.utils import translate_to_english, load_config
 
-TONES = {
-    "urgent": [
-        "production down", "blocking", "p0", "hotfix",
-    "not working", "broken", "stopped working", "cant login",
-    "can't login", "cannot login", "critical", "emergency",
-    "everything is down", "nothing works", "completely broken",
-    "affecting all users", "major issue", "severe", "outage",
-    "system down", "service down", "site down", "app down",
-    "production is down", "is down", "all users",
-    "does not work", "doesn't work", "no longer works",
-    "app not working", "not functioning"
-    ],
-    "aggressive": [
-        "terrible", "awful", "horrible", "unacceptable", "ridiculous",
-        "useless", "garbage", "stupid", "worst", "hate", "angry",
-        "furious", "disgusting", "incompetent"
-    ],
-    "confused": [
-        "not sure", "confused", "don't understand", "unclear",
-        "how do i", "how to", "what is", "why is", "i don't know",
-        "no idea", "lost", "stuck"
-    ],
-}
+logger = logging.getLogger(__name__)
 
-COMMENTS = {
-    "urgent": "This issue has been marked as **urgent** and will be prioritized.",
-    "aggressive": "Thank you for your feedback. We have flagged this issue for immediate attention.",
-    "confused": "Thank you for reaching out. We will review your question and get back to you.",
-    "normal": "Thank you for reporting this. Our team will review it and respond as soon as possible.",
-}
+_cfg = load_config()["tone"]
 
+TONES = _cfg["tones"]
+COMMENTS = _cfg["comments"]
 
-def translate_to_english(text):
-
-    try:
-        if not text or len(text.strip()) == 0:
-            return text
-        translated = GoogleTranslator(source="auto", target="en").translate(text)
-        return translated or text
-    except Exception as e:
-        print(f"  [tone] Translation failed: {e}")
-        return text
+# Marker used to identify previously posted tone comments
+_TONE_MARKER = "<!-- bot:tone-comment -->"
 
 
 def detect_tone(title, body):
-  
+    """Translates and analyzes the title and body, returns the tone."""
     translated_title = translate_to_english(title)
     translated_body = translate_to_english(body or "")
     text = (translated_title + " " + translated_body).lower()
@@ -56,10 +27,21 @@ def detect_tone(title, body):
     return "normal"
 
 
+def already_commented_tone(issue):
+    """
+    Returns True if the bot has already posted a tone comment on this issue.
+    Prevents duplicate comments on repeated 'edited' events.
+    """
+    for comment in issue.get_comments():
+        if _TONE_MARKER in comment.body:
+            return True
+    return False
+
+
 def handle_tone(issue, repo):
-  
+    """Main function: detects tone, applies label if needed, and leaves a comment."""
     tone = detect_tone(issue.title, issue.body or "")
-    print(f"  [tone] Issue #{issue.number}: tone detected -> {tone}")
+    logger.info("Issue #%s: tone detected -> %s", issue.number, tone)
 
     if tone != "normal":
         label_map = {
@@ -67,21 +49,21 @@ def handle_tone(issue, repo):
             "aggressive": "needs-attention",
             "confused": "needs-clarification",
         }
-        color_map = {
-            "urgent": "b60205",
-            "needs-attention": "e99695",
-            "needs-clarification": "fbca04",
-        }
+        colors = load_config()["labeler"]["label_colors"]
         label_name = label_map[tone]
         existing = {label.name for label in repo.get_labels()}
         if label_name not in existing:
-            color = color_map.get(label_name, "ededed")
+            color = colors.get(label_name, "ededed")
             repo.create_label(name=label_name, color=color)
 
         current = {label.name for label in issue.labels}
         if label_name not in current:
             issue.add_to_labels(label_name)
 
-    comment = COMMENTS[tone]
-    issue.create_comment(comment)
-    print(f"  [tone] Issue #{issue.number}: comment left for tone '{tone}'.")
+    if already_commented_tone(issue):
+        logger.debug("Issue #%s: tone comment already posted, skipping.", issue.number)
+        return
+
+    comment_body = f"{_TONE_MARKER}\n{COMMENTS[tone]}"
+    issue.create_comment(comment_body)
+    logger.info("Issue #%s: tone comment posted (tone: %s).", issue.number, tone)
