@@ -1,7 +1,4 @@
-"""
-duplicate.py — Detects duplicate issues using NLP semantic similarity.
-Understands meaning, not just exact words.
-"""
+
 
 from sentence_transformers import SentenceTransformer, util
 from deep_translator import GoogleTranslator
@@ -11,7 +8,7 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def translate_to_english(text):
-    """Translates any text to English."""
+   
     try:
         if not text or len(text.strip()) == 0:
             return text
@@ -23,7 +20,7 @@ def translate_to_english(text):
 
 
 def semantic_similarity(text_a, text_b):
-    """Translates and returns semantic similarity score (0.0 to 1.0)."""
+  
     text_a = translate_to_english(text_a)
     text_b = translate_to_english(text_b)
     embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
@@ -32,10 +29,7 @@ def semantic_similarity(text_a, text_b):
 
 
 def find_duplicates(new_issue, repo):
-    """
-    Compares a new issue against all open issues using NLP.
-    Returns a list of (issue, score) for semantically similar ones.
-    """
+
     new_text = new_issue.title + " " + (new_issue.body or "")
     duplicates = []
 
@@ -51,7 +45,7 @@ def find_duplicates(new_issue, repo):
 
 
 def handle_duplicates(issue, repo):
-    """Main function: finds semantic duplicates and leaves a comment."""
+
     print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
     duplicates = find_duplicates(issue, repo)
 

@@ -1,6 +1,4 @@
-"""
-closer.py — Automatically closes issues when a commit message contains 'closes #N'.
-"""
+
 
 import re
 
@@ -12,16 +10,13 @@ CLOSE_PATTERNS = re.compile(
 
 
 def extract_issue_numbers(commit_message):
-    """Extracts issue numbers from a commit message."""
+    
     matches = CLOSE_PATTERNS.findall(commit_message)
     return [int(n) for n in matches]
 
 
 def close_issues_from_push(repo, commits):
-    """
-    Processes a list of commits from a push event.
-    Closes any referenced issues and leaves a comment with the commit link.
-    """
+ 
     print("  [closer] Checking commits for 'closes #N'...")
     closed_count = 0
 
@@ -39,7 +34,7 @@ def close_issues_from_push(repo, commits):
                     continue
 
                 comment = (
-                    f"✅ This issue was automatically closed by commit "
+                    f"This issue was automatically closed by commit "
                     f"[`{sha}`](https://github.com/{repo.full_name}/commit/{commit_data.get('id', '')})"
                     f".\n\n> {message}"
                 )

@@ -1,6 +1,4 @@
-"""
-main.py — Entry point. Reads the GitHub event and calls the right module.
-"""
+
 
 import os
 import sys
@@ -36,13 +34,11 @@ def main():
 
     print(f"[bot] Event: {event_name} | Repository: {repo_name}")
 
-    # --- Read event payload ---
+    
     event_data = {}
     if event_path and os.path.exists(event_path):
         with open(event_path, "r", encoding="utf-8") as f:
             event_data = json.load(f)
-
-    # --- Route by event type ---
 
     if event_name == "issues":
         action = event_data.get("action", "")

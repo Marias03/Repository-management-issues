@@ -1,6 +1,4 @@
-"""
-reporter.py — Generates a daily markdown report of the repository issues.
-"""
+
 
 from datetime import datetime, timezone
 
@@ -12,7 +10,7 @@ def days_since(dt):
 
 
 def generate_report(repo):
-    """Main function: generates a report.md file with issue statistics."""
+   
     print("  [reporter] Generating report...")
 
     all_issues = [i for i in repo.get_issues(state="open") if not i.pull_request]
@@ -76,7 +74,7 @@ def generate_report(repo):
         lines.append("- None.")
     lines.append("")
 
-    # --- Save file ---
+   
     report_content = "\n".join(lines)
     with open("report.md", "w", encoding="utf-8") as f:
         f.write(report_content)

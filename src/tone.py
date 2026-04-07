@@ -1,6 +1,3 @@
-"""
-tone.py — Detects the tone of an issue and leaves an automatic comment.
-"""
 
 from deep_translator import GoogleTranslator
 
@@ -37,7 +34,7 @@ COMMENTS = {
 
 
 def translate_to_english(text):
-    """Translates any text to English."""
+
     try:
         if not text or len(text.strip()) == 0:
             return text
@@ -49,7 +46,7 @@ def translate_to_english(text):
 
 
 def detect_tone(title, body):
-    """Translates and analyzes the title and body, returns the tone."""
+  
     translated_title = translate_to_english(title)
     translated_body = translate_to_english(body or "")
     text = (translated_title + " " + translated_body).lower()
@@ -60,7 +57,7 @@ def detect_tone(title, body):
 
 
 def handle_tone(issue, repo):
-    """Main function: detects tone, applies label if needed, and leaves a comment."""
+  
     tone = detect_tone(issue.title, issue.body or "")
     print(f"  [tone] Issue #{issue.number}: tone detected -> {tone}")
 

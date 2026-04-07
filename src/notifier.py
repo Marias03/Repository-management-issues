@@ -1,6 +1,4 @@
-"""
-notifier.py — Notifies about issues that have had no response for too long.
-"""
+
 
 from datetime import datetime, timezone
 
@@ -10,14 +8,14 @@ NOTIFY_LABEL = "needs-attention"
 
 
 def days_since(dt):
-    """Returns the number of days since the given datetime."""
+    
     now = datetime.now(timezone.utc)
     delta = now - dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else now - dt
     return delta.days
 
 
 def already_notified(issue):
-    """Checks if a notification was already sent for this issue."""
+  
     marker = "has been waiting for a response for"
     for comment in issue.get_comments():
         if marker in comment.body:
@@ -26,7 +24,7 @@ def already_notified(issue):
 
 
 def check_stale_issues(repo):
-    """Main function: checks all open issues and notifies about stale ones."""
+  
     print("  [notifier] Checking for stale issues...")
     notified_count = 0
 

@@ -1,14 +1,10 @@
-"""
-labeler.py — Automatically labels issues based on keywords.
-Supports any language by translating to English first.
-"""
 
 import json
 from deep_translator import GoogleTranslator
 
 
 def translate_to_english(text):
-    """Translates any text to English. Returns original if translation fails."""
+    
     try:
         if not text or len(text.strip()) == 0:
             return text
@@ -25,7 +21,7 @@ def load_label_rules(config_path="config/labels.json"):
 
 
 def detect_labels(title, body, rules):
-    """Translates title and body to English, then matches keywords."""
+
     translated_title = translate_to_english(title)
     translated_body = translate_to_english(body or "")
 
@@ -41,7 +37,7 @@ def detect_labels(title, body, rules):
 
 
 def ensure_labels_exist(repo, rules):
-    """Creates labels in the repo if they don't exist yet."""
+ 
     existing = {label.name for label in repo.get_labels()}
     colors = {
         "bug": "d73a4a",
@@ -62,7 +58,7 @@ def ensure_labels_exist(repo, rules):
 
 
 def apply_labels(issue, repo, config_path="config/labels.json"):
-    """Main function: detects and applies labels to the issue."""
+   
     rules = load_label_rules(config_path)
     ensure_labels_exist(repo, rules)
 
