@@ -2,7 +2,10 @@
 tone.py — Detects the tone of an issue and leaves an automatic comment.
 """
 
+import logging
 from src.utils import translate_to_english, load_config
+
+logger = logging.getLogger(__name__)
 
 _cfg = load_config()["tone"]
 
@@ -15,8 +18,8 @@ _TONE_MARKER = "<!-- bot:tone-comment -->"
 
 def detect_tone(title, body):
     """Translates and analyzes the title and body, returns the tone."""
-    translated_title = translate_to_english(title, module="tone")
-    translated_body = translate_to_english(body or "", module="tone")
+    translated_title = translate_to_english(title)
+    translated_body = translate_to_english(body or "")
     text = (translated_title + " " + translated_body).lower()
     for tone, keywords in TONES.items():
         if any(kw.lower() in text for kw in keywords):
@@ -38,7 +41,7 @@ def already_commented_tone(issue):
 def handle_tone(issue, repo):
     """Main function: detects tone, applies label if needed, and leaves a comment."""
     tone = detect_tone(issue.title, issue.body or "")
-    print(f"  [tone] Issue #{issue.number}: tone detected -> {tone}")
+    logger.info("Issue #%s: tone detected -> %s", issue.number, tone)
 
     if tone != "normal":
         label_map = {
@@ -58,9 +61,9 @@ def handle_tone(issue, repo):
             issue.add_to_labels(label_name)
 
     if already_commented_tone(issue):
-        print(f"  [tone] Issue #{issue.number}: tone comment already posted, skipping.")
+        logger.debug("Issue #%s: tone comment already posted, skipping.", issue.number)
         return
 
     comment_body = f"{_TONE_MARKER}\n{COMMENTS[tone]}"
     issue.create_comment(comment_body)
-    print(f"  [tone] Issue #{issue.number}: comment left for tone '{tone}'.")
+    logger.info("Issue #%s: tone comment posted (tone: %s).", issue.number, tone)

@@ -3,8 +3,11 @@ duplicate.py — Detects duplicate issues using NLP semantic similarity.
 Understands meaning, not just exact words.
 """
 
+import logging
 from sentence_transformers import SentenceTransformer, util
 from src.utils import translate_to_english, load_config
+
+logger = logging.getLogger(__name__)
 
 _cfg = load_config()["duplicate"]
 
@@ -15,8 +18,8 @@ _MAX_RESULTS = _cfg["max_results"]
 
 def semantic_similarity(text_a, text_b):
     """Translates and returns semantic similarity score (0.0 to 1.0)."""
-    text_a = translate_to_english(text_a, module="duplicate")
-    text_b = translate_to_english(text_b, module="duplicate")
+    text_a = translate_to_english(text_a)
+    text_b = translate_to_english(text_b)
     embeddings = _model.encode([text_a, text_b], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     return score
@@ -43,11 +46,11 @@ def find_duplicates(new_issue, repo):
 
 def handle_duplicates(issue, repo):
     """Main function: finds semantic duplicates and leaves a comment."""
-    print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
+    logger.debug("Checking issue #%s for duplicates...", issue.number)
     duplicates = find_duplicates(issue, repo)
 
     if not duplicates:
-        print(f"  [duplicate] No duplicates found.")
+        logger.debug("Issue #%s: no duplicates found.", issue.number)
         return
 
     lines = ["**Possible duplicates found:**\n"]
@@ -57,4 +60,4 @@ def handle_duplicates(issue, repo):
 
     issue.create_comment("\n".join(lines))
     issue.add_to_labels("duplicate")
-    print(f"  [duplicate] Issue #{issue.number}: {len(duplicates)} duplicate(s) found.")
+    logger.info("Issue #%s: %d duplicate(s) found.", issue.number, len(duplicates))

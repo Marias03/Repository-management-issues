@@ -4,7 +4,10 @@ Supports any language by translating to English first.
 """
 
 import json
+import logging
 from src.utils import translate_to_english, get_config_path, load_config
+
+logger = logging.getLogger(__name__)
 
 
 def load_label_rules(config_path=None):
@@ -16,11 +19,11 @@ def load_label_rules(config_path=None):
 
 def detect_labels(title, body, rules):
     """Translates title and body to English, then matches keywords."""
-    translated_title = translate_to_english(title, module="labeler")
-    translated_body = translate_to_english(body or "", module="labeler")
+    translated_title = translate_to_english(title)
+    translated_body = translate_to_english(body or "")
 
-    print(f"  [labeler] Original: '{title}'")
-    print(f"  [labeler] Translated: '{translated_title}'")
+    logger.debug("Original title  : %s", title)
+    logger.debug("Translated title: %s", translated_title)
 
     text = (translated_title + " " + translated_body).lower()
     matched = []
@@ -38,7 +41,7 @@ def ensure_labels_exist(repo, rules):
         if label_name not in existing:
             color = colors.get(label_name, "ededed")
             repo.create_label(name=label_name, color=color)
-            print(f"  [labeler] Label created: {label_name}")
+            logger.info("Label created: %s", label_name)
 
 
 def apply_labels(issue, repo, config_path=None):
@@ -49,7 +52,7 @@ def apply_labels(issue, repo, config_path=None):
     matched = detect_labels(issue.title, issue.body or "", rules)
 
     if not matched:
-        print(f"  [labeler] Issue #{issue.number}: no matching labels found.")
+        logger.info("Issue #%s: no matching labels found.", issue.number)
         return
 
     current_labels = {label.name for label in issue.labels}
@@ -57,6 +60,6 @@ def apply_labels(issue, repo, config_path=None):
 
     if new_labels:
         issue.add_to_labels(*new_labels)
-        print(f"  [labeler] Issue #{issue.number}: labels added -> {new_labels}")
+        logger.info("Issue #%s: labels added -> %s", issue.number, new_labels)
     else:
-        print(f"  [labeler] Issue #{issue.number}: labels already applied.")
+        logger.debug("Issue #%s: all detected labels already applied.", issue.number)
