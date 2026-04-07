@@ -1,19 +1,26 @@
-"""
-duplicate.py — Detects duplicate issues using NLP semantic similarity.
+﻿"""
+duplicate.py - Detects duplicate issues using NLP semantic similarity.
 Understands meaning, not just exact words.
 """
 
 import logging
 from sentence_transformers import SentenceTransformer, util
-from src.utils import translate_to_english, load_config
+from src.utils import (
+    translate_to_english,
+    load_config,
+    has_comment_marker,
+    build_marked_comment,
+)
 
 logger = logging.getLogger(__name__)
 
 _cfg = load_config()["duplicate"]
+_idem = load_config()["idempotency"]
 
 SIMILARITY_THRESHOLD = _cfg["similarity_threshold"]
 _model = SentenceTransformer(_cfg["model"])
 _MAX_RESULTS = _cfg["max_results"]
+_DUPLICATE_MARKER = _idem["duplicate_comment_marker"]
 
 
 def semantic_similarity(text_a, text_b):
@@ -53,11 +60,16 @@ def handle_duplicates(issue, repo):
         logger.debug("Issue #%s: no duplicates found.", issue.number)
         return
 
+    if has_comment_marker(issue, _DUPLICATE_MARKER):
+        logger.debug("Issue #%s: duplicate comment already posted, skipping.", issue.number)
+        return
+
     lines = ["**Possible duplicates found:**\n"]
     for dup_issue, score in duplicates[:_MAX_RESULTS]:
-        lines.append(f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)")
+        lines.append(f"- #{dup_issue.number} - {dup_issue.title} (similarity: {score}%)")
     lines.append("\nPlease check if this issue is a duplicate before proceeding.")
 
-    issue.create_comment("\n".join(lines))
+    body = "\n".join(lines)
+    issue.create_comment(build_marked_comment(_DUPLICATE_MARKER, body))
     issue.add_to_labels("duplicate")
     logger.info("Issue #%s: %d duplicate(s) found.", issue.number, len(duplicates))

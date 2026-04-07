@@ -51,5 +51,10 @@
       "confused": "Thank you for reaching out. We will review your question and get back to you.",
       "normal": "Thank you for reporting this. Our team will review it and respond as soon as possible."
     }
+  },
+  "idempotency": {
+    "tone_comment_marker": "<!-- bot:tone-comment:v1 -->",
+    "duplicate_comment_marker": "<!-- bot:duplicate-comment:v1 -->",
+    "stale_comment_marker": "<!-- bot:stale-notify:v1 -->"
   }
 }
