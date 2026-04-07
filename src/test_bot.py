@@ -53,17 +53,3 @@ if issues:
 else:
     print("   No open issues found.")
 print()
-
-print("TEST 4 - Closer (commit parsing)")
-from src.closer import extract_issue_numbers
-messages = [
-    "Fix login bug - closes #5",
-    "Update readme - fixes #12 and resolves #3",
-    "Regular commit without issue reference",
-]
-for msg in messages:
-    numbers = extract_issue_numbers(msg)
-    print(f"   '{msg}' -> {numbers if numbers else 'none'}")
-print()
-
-print("All tests completed.")

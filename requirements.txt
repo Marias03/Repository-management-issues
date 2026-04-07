@@ -3,3 +3,4 @@ python-dotenv==1.0.0
 deep-translator==1.11.4
 sentence-transformers==5.3.0
 google-genai
+pytest==9.0.2

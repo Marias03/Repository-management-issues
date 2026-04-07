@@ -5,10 +5,12 @@ main.py — Entry point. Reads the GitHub event and calls the right module.
 import os
 import sys
 import json
+import logging
 from github import Github
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from src.utils import setup_logging
 from src.labeler import apply_labels
 from src.duplicates.LLMDuplicates import LLMDuplicateDetector
 from src.duplicates.nlpDuplicates import NLPDuplicateDetector
@@ -17,6 +19,7 @@ from src.closer import close_issues_from_push
 from src.tone import handle_tone
 from src.reporter import generate_report
 
+logger = logging.getLogger(__name__)
 
 def get_env(key):
     value = os.environ.get(key)
@@ -26,6 +29,8 @@ def get_env(key):
 
 
 def main():
+    setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
+
     # --- Setup ---
     token = get_env("GITHUB_TOKEN")
     repo_name = get_env("REPO_NAME")
@@ -35,7 +40,7 @@ def main():
     g = Github(token)
     repo = g.get_repo(repo_name)
 
-    print(f"[bot] Event: {event_name} | Repository: {repo_name}")
+    logger.info("Event: %s | Repository: %s", event_name, repo_name)
 
     # --- Read event payload ---
     event_data = {}
@@ -43,29 +48,26 @@ def main():
         with open(event_path, "r", encoding="utf-8") as f:
             event_data = json.load(f)
 
-    # --- Route by event type ---
-
     if event_name == "issues":
         action = event_data.get("action", "")
         issue_number = event_data.get("issue", {}).get("number")
 
         if not issue_number:
-            print("[bot] No issue number found in event.")
+            logger.warning("No issue number found in event payload.")
             return
 
         issue = repo.get_issue(issue_number)
-        print(f"[bot] Processing issue #{issue_number} (action: {action})")
+        logger.info("Processing issue #%s (action: %s)", issue_number, action)
 
         if action in ("opened", "edited"):
-            print("[bot] -> Applying labels...")
+            logger.info("Applying labels...")
             apply_labels(issue, repo)
 
-            print("[bot] -> Detecting tone...")
+            logger.info("Detecting tone...")
             handle_tone(issue, repo)
 
             if action == "opened":
-                print("[bot] -> Checking for duplicates...")
-
+                logger.info("Checking for duplicates...")
                 # Выбираем метод через переменную окружения
                 method = os.environ.get("DUPLICATE_METHOD", "nlp")  # 'nlp' или 'llm'
 
@@ -79,22 +81,22 @@ def main():
     elif event_name == "push":
         commits = event_data.get("commits", [])
         if commits:
-            print(f"[bot] -> Processing {len(commits)} commit(s)...")
+            logger.info("Processing %d commit(s)...", len(commits))
             close_issues_from_push(repo, commits)
         else:
-            print("[bot] No commits found in push event.")
+            logger.info("No commits found in push event.")
 
     elif event_name == "schedule":
-        print("[bot] -> Checking for stale issues...")
+        logger.info("Checking for stale issues...")
         check_stale_issues(repo)
 
-        print("[bot] -> Generating report...")
+        logger.info("Generating report...")
         generate_report(repo)
 
     else:
-        print(f"[bot] Event '{event_name}' is not handled.")
+        logger.warning("Event '%s' is not handled.", event_name)
 
-    print("[bot] Done.")
+    logger.info("Done.")
 
 
 if __name__ == "__main__":

@@ -70,6 +70,7 @@ Create a `.env` file in the project root:
 ```
 GITHUB_TOKEN=your_personal_access_token
 REPO_NAME=your_username/your_repository
+LOG_LEVEL=INFO
 GEMINI_API_KEY=your_gemini_api_key
 DUPLICATE_METHOD=your_duplicate_method(llm_or_nlp)
 ```

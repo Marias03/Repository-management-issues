@@ -1,9 +1,9 @@
-"""
-closer.py — Automatically closes issues when a commit message contains 'closes #N'.
-"""
+
 
 import re
+import logging
 
+logger = logging.getLogger(__name__)
 
 CLOSE_PATTERNS = re.compile(
     r"\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)",
@@ -12,16 +12,14 @@ CLOSE_PATTERNS = re.compile(
 
 
 def extract_issue_numbers(commit_message):
-    """Extracts issue numbers from a commit message."""
+    
     matches = CLOSE_PATTERNS.findall(commit_message)
     return [int(n) for n in matches]
 
 
 def close_issues_from_push(repo, commits):
-    """
-    Processes a list of commits from a push event.
-    Closes any referenced issues and leaves a comment with the commit link.
-    """
+ 
+ 
     print("  [closer] Checking commits for 'closes #N'...")
     closed_count = 0
 
@@ -35,20 +33,20 @@ def close_issues_from_push(repo, commits):
                 issue = repo.get_issue(number)
 
                 if issue.state == "closed":
-                    print(f"    Issue #{number}: already closed, skipping.")
+                    logger.debug("Issue #%s: already closed, skipping.", number)
                     continue
 
                 comment = (
-                    f"✅ This issue was automatically closed by commit "
+                    f"This issue was automatically closed by commit "
                     f"[`{sha}`](https://github.com/{repo.full_name}/commit/{commit_data.get('id', '')})"
                     f".\n\n> {message}"
                 )
                 issue.create_comment(comment)
                 issue.edit(state="closed")
-                print(f"    Issue #{number}: closed by commit {sha}.")
+                logger.info("Issue #%s: closed by commit %s.", number, sha)
                 closed_count += 1
 
             except Exception as e:
-                print(f"    Error closing issue #{number}: {e}")
+                logger.error("Failed to close issue #%s: %s", number, e)
 
-    print(f"  [closer] Done. Issues closed: {closed_count}.")
+    logger.info("Closer done. Issues closed: %d.", closed_count)
