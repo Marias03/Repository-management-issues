@@ -2,18 +2,16 @@
 reporter.py — Generates a daily markdown report of the repository issues.
 """
 
+import logging
 from datetime import datetime, timezone
+from src.utils import days_since
 
-
-def days_since(dt):
-    now = datetime.now(timezone.utc)
-    delta = now - dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else now - dt
-    return delta.days
+logger = logging.getLogger(__name__)
 
 
 def generate_report(repo):
     """Main function: generates a report.md file with issue statistics."""
-    print("  [reporter] Generating report...")
+    logger.info("Generating issues report...")
 
     all_issues = [i for i in repo.get_issues(state="open") if not i.pull_request]
     closed_issues = [i for i in repo.get_issues(state="closed") if not i.pull_request]
@@ -81,5 +79,7 @@ def generate_report(repo):
     with open("report.md", "w", encoding="utf-8") as f:
         f.write(report_content)
 
-    print(f"  [reporter] Report saved to report.md")
-    print(f"  [reporter] Open: {total_open} | Closed: {total_closed} | Stale: {len(no_response)}")
+    logger.info(
+        "Report saved to report.md | Open: %d | Closed: %d | Stale: %d",
+        total_open, total_closed, len(no_response),
+    )
