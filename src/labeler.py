@@ -4,7 +4,7 @@ Supports any language by translating to English first.
 """
 
 import json
-from src.utils import translate_to_english, get_config_path
+from src.utils import translate_to_english, get_config_path, load_config
 
 
 def load_label_rules(config_path=None):
@@ -33,17 +33,7 @@ def detect_labels(title, body, rules):
 def ensure_labels_exist(repo, rules):
     """Creates labels in the repo if they don't exist yet."""
     existing = {label.name for label in repo.get_labels()}
-    colors = {
-        "bug": "d73a4a",
-        "feature": "a2eeef",
-        "docs": "0075ca",
-        "question": "d876e3",
-        "security": "e4e669",
-        "duplicate": "cfd3d7",
-        "needs-attention": "e99695",
-        "urgent": "b60205",
-        "needs-clarification": "fbca04",
-    }
+    colors = load_config()["labeler"]["label_colors"]
     for label_name in list(rules.keys()) + ["duplicate", "needs-attention"]:
         if label_name not in existing:
             color = colors.get(label_name, "ededed")

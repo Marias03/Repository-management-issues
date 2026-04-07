@@ -4,17 +4,20 @@ Understands meaning, not just exact words.
 """
 
 from sentence_transformers import SentenceTransformer, util
-from src.utils import translate_to_english
+from src.utils import translate_to_english, load_config
 
-SIMILARITY_THRESHOLD = 0.75
-model = SentenceTransformer("all-MiniLM-L6-v2")
+_cfg = load_config()["duplicate"]
+
+SIMILARITY_THRESHOLD = _cfg["similarity_threshold"]
+_model = SentenceTransformer(_cfg["model"])
+_MAX_RESULTS = _cfg["max_results"]
 
 
 def semantic_similarity(text_a, text_b):
     """Translates and returns semantic similarity score (0.0 to 1.0)."""
     text_a = translate_to_english(text_a, module="duplicate")
     text_b = translate_to_english(text_b, module="duplicate")
-    embeddings = model.encode([text_a, text_b], convert_to_tensor=True)
+    embeddings = _model.encode([text_a, text_b], convert_to_tensor=True)
     score = util.cos_sim(embeddings[0], embeddings[1]).item()
     return score
 
@@ -48,7 +51,7 @@ def handle_duplicates(issue, repo):
         return
 
     lines = ["**Possible duplicates found:**\n"]
-    for dup_issue, score in duplicates[:3]:
+    for dup_issue, score in duplicates[:_MAX_RESULTS]:
         lines.append(f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)")
     lines.append("\nPlease check if this issue is a duplicate before proceeding.")
 

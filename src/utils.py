@@ -3,8 +3,26 @@ utils.py — Shared utility functions used across bot modules.
 """
 
 import os
+import json
 from datetime import datetime, timezone
 from deep_translator import GoogleTranslator
+
+_config_cache = None
+
+
+def load_config(config_path=None):
+    """
+    Loads bot_config.json and caches it for the lifetime of the process.
+    Returns the full config dict.
+    """
+    global _config_cache
+    if _config_cache is not None:
+        return _config_cache
+    if config_path is None:
+        config_path = get_config_path("config/bot_config.json")
+    with open(config_path, "r", encoding="utf-8") as f:
+        _config_cache = json.load(f)
+    return _config_cache
 
 
 def translate_to_english(text, module="utils"):

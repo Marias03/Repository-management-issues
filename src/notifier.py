@@ -2,11 +2,12 @@
 notifier.py — Notifies about issues that have had no response for too long.
 """
 
-from src.utils import days_since
+from src.utils import days_since, load_config
 
+_cfg = load_config()["notifier"]
 
-STALE_DAYS = 7
-NOTIFY_LABEL = "needs-attention"
+STALE_DAYS = _cfg["stale_days"]
+NOTIFY_LABEL = _cfg["notify_label"]
 
 
 def already_notified(issue):
