@@ -18,16 +18,9 @@ def extract_issue_numbers(commit_message):
 
 
 def close_issues_from_push(repo, commits):
-<<<<<<< HEAD
+ 
  
     print("  [closer] Checking commits for 'closes #N'...")
-=======
-    """
-    Processes a list of commits from a push event.
-    Closes any referenced issues and leaves a comment with the commit link.
-    """
-    logger.info("Scanning %d commit(s) for closing keywords...", len(commits))
->>>>>>> 794f30a36f0f695a9c01dfd7dc25457a90acad18
     closed_count = 0
 
     for commit_data in commits:
