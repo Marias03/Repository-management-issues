@@ -1,3 +1,6 @@
+﻿"""
+utils.py - Shared utility functions used across bot modules.
+"""
 
 import os
 import json
@@ -61,6 +64,17 @@ def translate_to_english(text: str) -> str:
     except Exception as e:
         logger.warning("Translation failed, using original text: %s", e)
         return text
+
+
+def build_marked_comment(marker: str, body: str) -> str:
+    return f"{marker}\n{body}"
+
+
+def has_comment_marker(issue, marker: str) -> bool:
+    for comment in issue.get_comments():
+        if marker in getattr(comment, "body", ""):
+            return True
+    return False
 
 
 def days_since(dt) -> int:

@@ -15,7 +15,7 @@ print(f"Open issues: {repo.open_issues_count}")
 print()
 
 print("TEST 1 - Labeler (no translation needed)")
-from src.labeler import detect_labels, load_label_rules
+from src.labeler import load_label_rules
 rules = load_label_rules()
 from src.labeler import load_label_rules
 rules = load_label_rules()
@@ -25,17 +25,34 @@ print(f"   Input: App crashes on login")
 print(f"   Detected labels: {matched}")
 print()
 
-print("TEST 2 - Duplicate detection (NLP)")
-from src.duplicate import semantic_similarity
+# ------------------------
+# TEST 2 - Duplicate detection (NLP + LLM)
+# ------------------------
+print("TEST 2 - Duplicate detection (NLP + LLM)")
+
+# --- NLP ---
+from src.duplicates.nlpDuplicates import NLPDuplicateDetector
+nlp_detector = NLPDuplicateDetector()
+
 pairs = [
     ("App crashes on login", "Application fails during login"),
     ("La app no funciona", "The app is not working"),
     ("Please add dark mode", "App crashes on login"),
 ]
+
 for a, b in pairs:
-    score = semantic_similarity(a, b)
-    result = "DUPLICATE" if score >= 0.75 else "different"
-    print(f"   {round(score * 100)}% -> {result} | {a} vs {b}")
+    nlp_score = nlp_detector.semantic_similarity(a, b)
+    result = "DUPLICATE" if nlp_score >= 0.75 else "different"
+    print(f"   [NLP] {round(nlp_score*100)}% -> {result} | {a} vs {b}")
+
+# --- LLM ---
+from src.duplicates.LLMDuplicates import LLMDuplicateDetector
+llm_detector = LLMDuplicateDetector()
+
+for a, b in pairs:
+    llm_result = llm_detector.llm_check(a, b)
+    print(f"   [LLM] {a} vs {b} -> {llm_result.strip() if llm_result else 'No result'}")
+
 print()
 
 print("TEST 3 - Tone detection")

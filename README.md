@@ -12,7 +12,9 @@ The bot listens to repository events and reacts automatically — no manual inte
 When a new issue is opened, the bot analyzes the title and description to assign relevant labels such as `bug`, `feature`, `docs`, `question`, or `security`. Text is automatically translated to English before analysis, so issues written in any language are supported.
 
 **Duplicate detection**
-Uses semantic NLP similarity (sentence-transformers) to compare new issues against existing ones. Unlike simple keyword matching, this approach understands meaning — so "app crashes on login" and "cannot access my account" can be identified as related. Issues above 75% similarity threshold receive a `duplicate` label and a comment linking to the original.
+Supports two methods controlled by the `DUPLICATE_METHOD` environment variable:
+- `nlp` — uses sentence-transformers to compare issues semantically. Converts text into numerical vectors and calculates cosine similarity. Issues above 75% similarity receive a `duplicate` label.
+- `llm` — uses Gemini AI (gemini-2.5-flash) to determine if two issues describe the same problem. Returns a human-readable explanation of why they are duplicates.
 
 **Tone detection**
 Classifies the tone of each issue as `urgent`, `aggressive`, `confused`, or `normal`. Each tone triggers a different automatic comment. Urgent issues also receive the `urgent` label for prioritization.
@@ -29,33 +31,63 @@ Every day at 09:00 UTC, the bot generates a `report.md` file in the repository w
 ## Tech stack
 
 - Python 3.10+
-- [PyGithub](https://github.com/PyGithub/PyGithub) — GitHub API client
-- [sentence-transformers](https://www.sbert.net/) — semantic NLP for duplicate detection
-- [deep-translator](https://github.com/nidhaloff/deep-translator) — multilanguage support
+- **PyGithub** — GitHub API client
+- **sentence-transformers** — semantic NLP for duplicate detection (nlp method)
+- **google-generativeai** — Gemini LLM for advanced duplicate detection (llm method)
+- **deep-translator** — multilanguage support
 - GitHub Actions — cloud execution and scheduling
 
 ## Project structure
+## Project structure
+
 ```
 ├── .github/
 │   └── workflows/
-│       └── bot.yml        # GitHub Actions workflow
+│       └── bot.yml              # GitHub Actions workflow
 ├── config/
-│   └── labels.json        # Keyword rules for label detection
+│   ├── labels.json              # Keyword rules for label detection
+│   └── bot_config.json          # Centralized bot configuration
 ├── src/
-│   ├── main.py            # Entry point — routes events to modules
-│   ├── labeler.py         # Label detection with translation
-│   ├── duplicate.py       # NLP-based duplicate detection
-│   ├── tone.py            # Tone classification and auto comments
-│   ├── notifier.py        # Stale issue notifications
-│   ├── closer.py          # Auto close from commit messages
-│   └── reporter.py        # Daily statistics report
-├── test_bot.py            # Local test script
+│   ├── main.py                  # Entry point — routes events to modules
+│   ├── utils.py                 # Shared utilities and helpers
+│   ├── labeler.py               # Label detection with translation
+│   ├── duplicate.py             # NLP-based duplicate detection
+│   ├── tone.py                  # Tone classification and auto comments
+│   ├── notifier.py              # Stale issue notifications
+│   ├── closer.py                # Auto close from commit messages
+│   └── reporter.py              # Daily statistics report
+├── test_bot.py                  # Local test script
 └── requirements.txt
 ```
+
+## Technical Details
+
+**Architecture**
+The bot follows a modular architecture where each module handles one responsibility. `main.py` acts as the coordinator — it reads the GitHub event and routes it to the correct module.
+
+**Event flow**
+- Issue created → `labeler.py` → `tone.py` → `duplicate.py`
+- Issue edited → `labeler.py` → `tone.py`
+- Push to main → `closer.py`
+- Daily schedule → `notifier.py` → `reporter.py`
+
+**Duplicate detection methods**
+- `nlp` — the all-MiniLM-L6-v2 model converts text into numerical vectors (embeddings) and calculates cosine similarity. A score above 0.75 triggers a duplicate warning.
+- `llm` — sends both issues to Gemini AI with a prompt asking if they describe the same problem. Returns Yes/No with a short explanation.
+
+**Translation**
+All text is automatically translated to English before analysis using deep-translator. This ensures consistent keyword matching regardless of the original language.
+
+**Configuration**
+All bot constants are centralized in `config/bot_config.json` — similarity threshold, NLP model, label colors, tone keywords and automatic comments. This allows changing values without modifying the source code.
+
+**Logging**
+The bot uses Python's logging module configured in `utils.py`. All events are logged with timestamp, level and module name for easy debugging.
 
 ## Setup
 
 ### 1. Clone and install
+
 ```bash
 git clone https://github.com/Marias03/Repository-management-issues.git
 cd Repository-management-issues
@@ -67,14 +99,16 @@ pip install -r requirements.txt
 ### 2. Environment variables
 
 Create a `.env` file in the project root:
-```
 GITHUB_TOKEN=your_personal_access_token
 REPO_NAME=your_username/your_repository
-```
+LOG_LEVEL=INFO
+GEMINI_API_KEY=your_gemini_api_key
+DUPLICATE_METHOD=llm
 
 The token needs `repo` and `workflow` scopes.
 
 ### 3. Run tests locally
+
 ```bash
 python test_bot.py
 ```

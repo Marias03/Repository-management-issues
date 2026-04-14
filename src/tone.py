@@ -1,19 +1,23 @@
-"""
-tone.py — Detects the tone of an issue and leaves an automatic comment.
+﻿"""
+tone.py - Detects the tone of an issue and leaves an automatic comment.
 """
 
 import logging
-from src.utils import translate_to_english, load_config
+from src.utils import (
+    translate_to_english,
+    load_config,
+    has_comment_marker,
+    build_marked_comment,
+)
 
 logger = logging.getLogger(__name__)
 
 _cfg = load_config()["tone"]
+_idem = load_config()["idempotency"]
 
 TONES = _cfg["tones"]
 COMMENTS = _cfg["comments"]
-
-# Marker used to identify previously posted tone comments
-_TONE_MARKER = "<!-- bot:tone-comment -->"
+_TONE_MARKER = _idem["tone_comment_marker"]
 
 
 def detect_tone(title, body):
@@ -28,14 +32,7 @@ def detect_tone(title, body):
 
 
 def already_commented_tone(issue):
-    """
-    Returns True if the bot has already posted a tone comment on this issue.
-    Prevents duplicate comments on repeated 'edited' events.
-    """
-    for comment in issue.get_comments():
-        if _TONE_MARKER in comment.body:
-            return True
-    return False
+    return has_comment_marker(issue, _TONE_MARKER)
 
 
 def handle_tone(issue, repo):
@@ -64,6 +61,6 @@ def handle_tone(issue, repo):
         logger.debug("Issue #%s: tone comment already posted, skipping.", issue.number)
         return
 
-    comment_body = f"{_TONE_MARKER}\n{COMMENTS[tone]}"
+    comment_body = build_marked_comment(_TONE_MARKER, COMMENTS[tone])
     issue.create_comment(comment_body)
     logger.info("Issue #%s: tone comment posted (tone: %s).", issue.number, tone)

@@ -22,15 +22,26 @@ print(f"   Input: 'App crashes on login'")
 print(f"   Detected labels: {labels}")
 print()
 
-print("TEST 2 - Duplicate detection")
-from src.duplicate import semantic_similarity  # fix: was incorrectly named 'similarity'
-score = semantic_similarity("App crashes on login", "Application crashes during login")
-print(f"   Similarity score: {round(score * 100)}%")
-print()
+print("TEST 2 - Duplicate detection (NLP & LLM)")
+
+# --- NLP ---
+from src.duplicates.nlpDuplicates import NLPDuplicateDetector
+
+nlp_detector = NLPDuplicateDetector()
+text1 = "App crashes on login"
+text2 = "Application crashes during login"
+nlp_score = nlp_detector.semantic_similarity(text1, text2)
+print(f"   [NLP] Similarity score: {round(nlp_score * 100)}%")
+
+# --- LLM ---
+from src.duplicates.LLMDuplicates import LLMDuplicateDetector
+
+llm_detector = LLMDuplicateDetector()
+llm_result = llm_detector.llm_check(text1, text2)
+print(f"   [LLM] Duplicate check result:\n{llm_result.strip() if llm_result else 'No result'}")
 
 print("TEST 3 - Notifier (stale issues)")
-from src.notifier import STALE_DAYS
-from src.utils import days_since
+from src.notifier import days_since, STALE_DAYS
 issues = list(repo.get_issues(state="open"))
 if issues:
     for issue in issues[:3]:
@@ -42,17 +53,3 @@ if issues:
 else:
     print("   No open issues found.")
 print()
-
-print("TEST 4 - Closer (commit parsing)")
-from src.closer import extract_issue_numbers
-messages = [
-    "Fix login bug - closes #5",
-    "Update readme - fixes #12 and resolves #3",
-    "Regular commit without issue reference",
-]
-for msg in messages:
-    numbers = extract_issue_numbers(msg)
-    print(f"   '{msg}' -> {numbers if numbers else 'none'}")
-print()
-
-print("All tests completed.")
