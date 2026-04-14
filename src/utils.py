@@ -1,6 +1,3 @@
-"""
-utils.py — Shared utility functions used across bot modules.
-"""
 
 import os
 import json

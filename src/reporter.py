@@ -1,6 +1,3 @@
-"""
-reporter.py — Generates a daily markdown report of the repository issues.
-"""
 
 import logging
 from datetime import datetime, timezone
@@ -10,29 +7,28 @@ logger = logging.getLogger(__name__)
 
 
 def generate_report(repo):
-    """Main function: generates a report.md file with issue statistics."""
+    
     logger.info("Generating issues report...")
 
     all_issues = [i for i in repo.get_issues(state="open") if not i.pull_request]
     closed_issues = [i for i in repo.get_issues(state="closed") if not i.pull_request]
 
-    # --- Statistics ---
     total_open = len(all_issues)
     total_closed = len(closed_issues)
     no_response = [i for i in all_issues if i.comments == 0 and days_since(i.created_at) >= 7]
     duplicates = [i for i in all_issues if any(l.name == "duplicate" for l in i.labels)]
     urgent = [i for i in all_issues if any(l.name == "urgent" for l in i.labels)]
 
-    # --- Labels breakdown ---
+    
     label_count = {}
     for issue in all_issues:
         for label in issue.labels:
             label_count[label.name] = label_count.get(label.name, 0) + 1
 
-    # --- Oldest issues ---
+
     oldest = sorted(all_issues, key=lambda i: i.created_at)[:5]
 
-    # --- Build report ---
+ 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     lines = []
 
@@ -74,7 +70,7 @@ def generate_report(repo):
         lines.append("- None.")
     lines.append("")
 
-    # --- Save file ---
+ 
     report_content = "\n".join(lines)
     with open("report.md", "w", encoding="utf-8") as f:
         f.write(report_content)

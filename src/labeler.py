@@ -1,7 +1,3 @@
-"""
-labeler.py — Automatically labels issues based on keywords.
-Supports any language by translating to English first.
-"""
 
 import json
 import logging

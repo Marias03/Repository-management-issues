@@ -1,5 +1,4 @@
 
-
 import os
 import sys
 import json
@@ -19,7 +18,7 @@ from src.reporter import generate_report
 logger = logging.getLogger(__name__)
 
  
- 
+
 def get_env(key):
     value = os.environ.get(key)
     if not value:
@@ -30,7 +29,7 @@ def get_env(key):
 def main():
     setup_logging(level=os.environ.get("LOG_LEVEL", "INFO"))
 
-    # --- Setup ---
+    
     token = get_env("GITHUB_TOKEN")
     repo_name = get_env("REPO_NAME")
     event_name = os.environ.get("GITHUB_EVENT_NAME", "schedule")
