@@ -51,3 +51,4 @@ jobs:
           REPO_NAME: ${{ github.repository }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
+          DUPLICATE_METHOD: ${{ github.DUPLICATE_METHOD }}
