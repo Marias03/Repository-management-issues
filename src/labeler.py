@@ -1,4 +1,3 @@
-
 import json
 import logging
 from src.utils import translate_to_english, get_config_path, load_config

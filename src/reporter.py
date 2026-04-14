@@ -1,4 +1,3 @@
-
 import logging
 from datetime import datetime, timezone
 from src.utils import days_since
@@ -7,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_report(repo):
-    
+
     logger.info("Generating issues report...")
 
     all_issues = [i for i in repo.get_issues(state="open") if not i.pull_request]
@@ -15,20 +14,19 @@ def generate_report(repo):
 
     total_open = len(all_issues)
     total_closed = len(closed_issues)
-    no_response = [i for i in all_issues if i.comments == 0 and days_since(i.created_at) >= 7]
+    no_response = [
+        i for i in all_issues if i.comments == 0 and days_since(i.created_at) >= 7
+    ]
     duplicates = [i for i in all_issues if any(l.name == "duplicate" for l in i.labels)]
     urgent = [i for i in all_issues if any(l.name == "urgent" for l in i.labels)]
 
-    
     label_count = {}
     for issue in all_issues:
         for label in issue.labels:
             label_count[label.name] = label_count.get(label.name, 0) + 1
 
-
     oldest = sorted(all_issues, key=lambda i: i.created_at)[:5]
 
- 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     lines = []
 
@@ -46,7 +44,9 @@ def generate_report(repo):
 
     lines.append("## Labels breakdown")
     if label_count:
-        for label, count in sorted(label_count.items(), key=lambda x: x[1], reverse=True):
+        for label, count in sorted(
+            label_count.items(), key=lambda x: x[1], reverse=True
+        ):
             lines.append(f"- {label}: {count}")
     else:
         lines.append("- No labels assigned yet.")
@@ -70,12 +70,13 @@ def generate_report(repo):
         lines.append("- None.")
     lines.append("")
 
- 
     report_content = "\n".join(lines)
     with open("report.md", "w", encoding="utf-8") as f:
         f.write(report_content)
 
     logger.info(
         "Report saved to report.md | Open: %d | Closed: %d | Stale: %d",
-        total_open, total_closed, len(no_response),
+        total_open,
+        total_closed,
+        len(no_response),
     )
