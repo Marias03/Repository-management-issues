@@ -16,8 +16,10 @@ print()
 
 print("TEST 1 - Labeler (no translation needed)")
 from src.labeler import load_label_rules
+
 rules = load_label_rules()
 from src.labeler import load_label_rules
+
 rules = load_label_rules()
 text = "app crashes on login getting an error".lower()
 matched = [l for l, kws in rules.items() if any(k in text for k in kws)]
@@ -32,6 +34,7 @@ print("TEST 2 - Duplicate detection (NLP + LLM)")
 
 # --- NLP ---
 from src.duplicates.nlpDuplicates import NLPDuplicateDetector
+
 nlp_detector = NLPDuplicateDetector()
 
 pairs = [
@@ -47,6 +50,7 @@ for a, b in pairs:
 
 # --- LLM ---
 from src.duplicates.LLMDuplicates import LLMDuplicateDetector
+
 llm_detector = LLMDuplicateDetector()
 
 for a, b in pairs:
@@ -57,6 +61,7 @@ print()
 
 print("TEST 3 - Tone detection")
 from src.tone import detect_tone
+
 cases = [
     ("App is completely broken", ""),
     ("This is garbage software", ""),
@@ -69,6 +74,7 @@ print()
 
 print("TEST 4 - Notifier")
 from src.notifier import days_since, STALE_DAYS
+
 issues = list(repo.get_issues(state="open"))
 if issues:
     for issue in issues[:3]:
@@ -76,13 +82,16 @@ if issues:
             continue
         age = days_since(issue.created_at)
         stale = "STALE" if age >= STALE_DAYS and issue.comments == 0 else "ok"
-        print(f"   Issue #{issue.number}: {age} days old, {issue.comments} comments - {stale}")
+        print(
+            f"   Issue #{issue.number}: {age} days old, {issue.comments} comments - {stale}"
+        )
 else:
     print("   No open issues found.")
 print()
 
 print("TEST 5 - Closer")
 from src.closer import extract_issue_numbers
+
 messages = [
     "Fix login bug - closes #5",
     "Update readme - fixes #12 and resolves #3",
@@ -95,6 +104,7 @@ print()
 
 print("TEST 6 - Reporter")
 from src.reporter import generate_report
+
 generate_report(repo)
 print("   Check report.md file in your project folder")
 print()

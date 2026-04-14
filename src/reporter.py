@@ -19,7 +19,9 @@ def generate_report(repo):
     # --- Statistics ---
     total_open = len(all_issues)
     total_closed = len(closed_issues)
-    no_response = [i for i in all_issues if i.comments == 0 and days_since(i.created_at) >= 7]
+    no_response = [
+        i for i in all_issues if i.comments == 0 and days_since(i.created_at) >= 7
+    ]
     duplicates = [i for i in all_issues if any(l.name == "duplicate" for l in i.labels)]
     urgent = [i for i in all_issues if any(l.name == "urgent" for l in i.labels)]
 
@@ -50,7 +52,9 @@ def generate_report(repo):
 
     lines.append("## Labels breakdown")
     if label_count:
-        for label, count in sorted(label_count.items(), key=lambda x: x[1], reverse=True):
+        for label, count in sorted(
+            label_count.items(), key=lambda x: x[1], reverse=True
+        ):
             lines.append(f"- {label}: {count}")
     else:
         lines.append("- No labels assigned yet.")
@@ -81,5 +85,7 @@ def generate_report(repo):
 
     logger.info(
         "Report saved to report.md | Open: %d | Closed: %d | Stale: %d",
-        total_open, total_closed, len(no_response),
+        total_open,
+        total_closed,
+        len(no_response),
     )

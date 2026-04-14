@@ -16,8 +16,11 @@ print()
 
 print("TEST 1 - Labeler")
 from src.labeler import detect_labels, load_label_rules
+
 rules = load_label_rules()
-labels = detect_labels("App crashes on login", "Getting an error when I try to log in", rules)
+labels = detect_labels(
+    "App crashes on login", "Getting an error when I try to log in", rules
+)
 print(f"   Input: 'App crashes on login'")
 print(f"   Detected labels: {labels}")
 print()
@@ -38,10 +41,13 @@ from src.duplicates.LLMDuplicates import LLMDuplicateDetector
 
 llm_detector = LLMDuplicateDetector()
 llm_result = llm_detector.llm_check(text1, text2)
-print(f"   [LLM] Duplicate check result:\n{llm_result.strip() if llm_result else 'No result'}")
+print(
+    f"   [LLM] Duplicate check result:\n{llm_result.strip() if llm_result else 'No result'}"
+)
 
 print("TEST 3 - Notifier (stale issues)")
 from src.notifier import days_since, STALE_DAYS
+
 issues = list(repo.get_issues(state="open"))
 if issues:
     for issue in issues[:3]:
@@ -49,7 +55,9 @@ if issues:
             continue
         age = days_since(issue.created_at)
         stale = "STALE" if age >= STALE_DAYS and issue.comments == 0 else "ok"
-        print(f"   Issue #{issue.number}: {age} days old, {issue.comments} comments -> {stale}")
+        print(
+            f"   Issue #{issue.number}: {age} days old, {issue.comments} comments -> {stale}"
+        )
 else:
     print("   No open issues found.")
 print()

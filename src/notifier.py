@@ -53,7 +53,11 @@ def check_stale_issues(repo):
             if NOTIFY_LABEL not in current_labels:
                 issue.add_to_labels(NOTIFY_LABEL)
 
-            logger.info("Issue #%s: stale notification sent (%d days, 0 comments).", issue.number, age)
+            logger.info(
+                "Issue #%s: stale notification sent (%d days, 0 comments).",
+                issue.number,
+                age,
+            )
             notified_count += 1
 
     logger.info("Stale check done. Issues notified: %d.", notified_count)

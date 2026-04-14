@@ -14,13 +14,13 @@ class FakeIssue:
         print(f"[Label added to #{self.number}]: {label}")
 
 
-
-new_issue = FakeIssue(1, "App crashes on login", "Every time I try to login, the app crashes.")
+new_issue = FakeIssue(
+    1, "App crashes on login", "Every time I try to login, the app crashes."
+)
 existing_issues = [
     FakeIssue(2, "Login failure", "App throws an error during authentication."),
     FakeIssue(3, "UI glitch", "Button layout breaks on small screens."),
 ]
-
 
 
 # создаём детектор
@@ -29,7 +29,6 @@ detector = LLMDuplicates.LLMDuplicateDetector()
 # проверяем дубликаты через llm_check
 for existing in existing_issues:
     result = detector.llm_check(
-        new_issue.title + " " + new_issue.body,
-        existing.title + " " + existing.body
+        new_issue.title + " " + new_issue.body, existing.title + " " + existing.body
     )
     print(f"Issue #{existing.number} check result:\n{result}\n")

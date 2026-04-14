@@ -1,7 +1,6 @@
 from unittest.mock import patch
 from src.labeler import detect_labels
 
-
 RULES = {
     "bug": ["crash", "error", "broken", "fails"],
     "feature": ["please add", "dark mode", "feature request"],
@@ -24,7 +23,9 @@ def test_detect_feature_label(mock_translate):
 
 @patch("src.labeler.translate_to_english", side_effect=lambda x: x)
 def test_detect_docs_label(mock_translate):
-    labels = detect_labels("README is unclear", "documentation should be improved", RULES)
+    labels = detect_labels(
+        "README is unclear", "documentation should be improved", RULES
+    )
     assert "docs" in labels
 
 

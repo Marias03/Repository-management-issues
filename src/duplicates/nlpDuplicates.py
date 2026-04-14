@@ -10,8 +10,9 @@ from .base import DuplicateDetector
 SIMILARITY_THRESHOLD = 0.75
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+
 class NLPDuplicateDetector(DuplicateDetector):
-    def translate_to_english(self,text):
+    def translate_to_english(self, text):
         """Translates any text to English."""
         try:
             if not text or len(text.strip()) == 0:
@@ -22,7 +23,7 @@ class NLPDuplicateDetector(DuplicateDetector):
             print(f"  [duplicate] Translation failed: {e}")
             return text
 
-    def semantic_similarity(self,text_a, text_b):
+    def semantic_similarity(self, text_a, text_b):
         """Translates and returns semantic similarity score (0.0 to 1.0)."""
         text_a = self.translate_to_english(text_a)
         text_b = self.translate_to_english(text_b)
@@ -30,7 +31,7 @@ class NLPDuplicateDetector(DuplicateDetector):
         score = util.cos_sim(embeddings[0], embeddings[1]).item()
         return score
 
-    def find_duplicates(self,new_issue, repo):
+    def find_duplicates(self, new_issue, repo):
         """
         Compares a new issue against all open issues using NLP.
         Returns a list of (issue, score) for semantically similar ones.
@@ -48,7 +49,7 @@ class NLPDuplicateDetector(DuplicateDetector):
 
         return sorted(duplicates, key=lambda x: x[1], reverse=True)
 
-    def handle_duplicates(self,issue, repo):
+    def handle_duplicates(self, issue, repo):
         """Main function: finds semantic duplicates and leaves a comment."""
         print(f"  [duplicate] Checking issue #{issue.number} for duplicates...")
         duplicates = self.find_duplicates(issue, repo)
@@ -59,10 +60,13 @@ class NLPDuplicateDetector(DuplicateDetector):
 
         lines = ["**Possible duplicates found:**\n"]
         for dup_issue, score in duplicates[:3]:
-            lines.append(f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)")
+            lines.append(
+                f"- #{dup_issue.number} — {dup_issue.title} (similarity: {score}%)"
+            )
         lines.append("\nPlease check if this issue is a duplicate before proceeding.")
 
         issue.create_comment("\n".join(lines))
         issue.add_to_labels("duplicate")
-        print(f"  [duplicate] Issue #{issue.number}: {len(duplicates)} duplicate(s) found.")
-        
+        print(
+            f"  [duplicate] Issue #{issue.number}: {len(duplicates)} duplicate(s) found."
+        )

@@ -1,5 +1,3 @@
-
-
 import re
 import logging
 
@@ -12,14 +10,13 @@ CLOSE_PATTERNS = re.compile(
 
 
 def extract_issue_numbers(commit_message):
-    
+
     matches = CLOSE_PATTERNS.findall(commit_message)
     return [int(n) for n in matches]
 
 
 def close_issues_from_push(repo, commits):
- 
- 
+
     print("  [closer] Checking commits for 'closes #N'...")
     closed_count = 0
 
