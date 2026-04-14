@@ -40,20 +40,20 @@ Every day at 09:00 UTC, the bot generates a `report.md` file in the repository w
 ## Project structure
 ├── .github/
 │   └── workflows/
-│       └── bot.yml              # GitHub Actions workflow
+│       └── bot.yml              
 ├── config/
-│   ├── labels.json              # Keyword rules for label detection
-│   └── bot_config.json          # Centralized bot configuration
+│   ├── labels.json              
+│   └── bot_config.json          
 ├── src/
-│   ├── main.py                  # Entry point — routes events to modules
-│   ├── utils.py                 # Shared utilities and helpers
-│   ├── labeler.py               # Label detection with translation
-│   ├── duplicate.py             # NLP-based duplicate detection
-│   ├── tone.py                  # Tone classification and auto comments
-│   ├── notifier.py              # Stale issue notifications
-│   ├── closer.py                # Auto close from commit messages
-│   └── reporter.py              # Daily statistics report
-├── test_bot.py                  # Local test script
+│   ├── main.py                 
+│   ├── utils.py                 
+│   ├── labeler.py             
+│   ├── duplicate.py             
+│   ├── tone.py                  
+│   ├── notifier.py              
+│   ├── closer.py                
+│   └── reporter.py              
+├── test_bot.py                  
 └── requirements.txt
 
 ## Technical Details
