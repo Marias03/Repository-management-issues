@@ -72,8 +72,10 @@ def main():
                 method = os.environ.get("DUPLICATE_METHOD", "nlp")  # 'nlp' или 'llm'
 
                 if method.lower() == "llm":
+                    logger.info("Using llm")
                     detector = LLMDuplicateDetector()
                 else:
+                    logger.info("Using nlp")
                     detector = NLPDuplicateDetector()
 
                 detector.handle_duplicates(issue, repo)
