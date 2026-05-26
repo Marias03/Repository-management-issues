@@ -2,6 +2,8 @@ import json
 import logging
 from src.utils import translate_to_english, get_config_path, load_config
 
+from src.assigner import assign_issue
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,6 +44,7 @@ def ensure_labels_exist(repo, rules):
 def apply_labels(issue, repo, config_path=None):
     """Main function: detects and applies labels to the issue."""
     rules = load_label_rules(config_path)
+    config = load_config()
     ensure_labels_exist(repo, rules)
 
     matched = detect_labels(issue.title, issue.body or "", rules)
@@ -56,5 +59,6 @@ def apply_labels(issue, repo, config_path=None):
     if new_labels:
         issue.add_to_labels(*new_labels)
         logger.info("Issue #%s: labels added -> %s", issue.number, new_labels)
+        assign_issue(issue, repo, config,new_labels)
     else:
         logger.debug("Issue #%s: all detected labels already applied.", issue.number)
