@@ -19,6 +19,14 @@
       "needs-attention": "e99695",
       "urgent": "b60205",
       "needs-clarification": "fbca04"
+    },
+    "assignees": {
+      "bug": "lead-developer",
+      "feature": "tech-lead",
+      "docs": "docs-owner",
+      "security": "security-owner",
+      "question": "lead-developer",
+      "urgent": "lead-developer"
     }
   },
   "tone": {
